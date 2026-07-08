@@ -1,0 +1,10 @@
+node_modules/
+
+# Secrets locaux — ne pas committer
+.env
+.env.local
+.env.production
+.env.staging
+
+# Template DevOps — versionné
+!.env.example

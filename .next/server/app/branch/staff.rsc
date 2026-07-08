@@ -1,0 +1,29 @@
+1:"$Sreact.fragment"
+2:I[44129,["95","static/chunks/95-a5dcb6b5e612aaed.js","8693","static/chunks/8693-f0a1e133bb7fd2ca.js","7177","static/chunks/app/layout-887ac8fbb78f6272.js"],"ToastProvider"]
+3:I[85843,["95","static/chunks/95-a5dcb6b5e612aaed.js","8693","static/chunks/8693-f0a1e133bb7fd2ca.js","7177","static/chunks/app/layout-887ac8fbb78f6272.js"],"default"]
+4:I[87555,[],""]
+5:I[96678,["95","static/chunks/95-a5dcb6b5e612aaed.js","8039","static/chunks/app/error-f338ec58625e72ce.js"],"default"]
+6:I[31295,[],""]
+7:I[11024,["95","static/chunks/95-a5dcb6b5e612aaed.js","4345","static/chunks/app/not-found-191198012fbfe1b5.js"],"default"]
+8:I[94970,[],"ClientSegmentRoot"]
+9:I[71816,["95","static/chunks/95-a5dcb6b5e612aaed.js","1430","static/chunks/1430-42efb7a4c4cb98db.js","3628","static/chunks/app/branch/layout-4de24318913bcddc.js"],"default"]
+b:I[90894,[],"ClientPageRoot"]
+c:I[595,["1430","static/chunks/1430-42efb7a4c4cb98db.js","1066","static/chunks/app/branch/staff/page-843bf852aab667c7.js"],"default"]
+f:I[59665,[],"MetadataBoundary"]
+11:I[59665,[],"OutletBoundary"]
+14:I[74911,[],"AsyncMetadataOutlet"]
+16:I[59665,[],"ViewportBoundary"]
+18:I[26614,[],""]
+:HL["/_next/static/css/d4472d9ca0926243.css","style"]
+0:{"P":null,"b":"RfrmGUk7uNgCvL4XYwV4s","p":"","c":["","branch","staff"],"i":false,"f":[[["",{"children":["branch",{"children":["staff",{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",true],["",["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/d4472d9ca0926243.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]],["$","html",null,{"lang":"fr","children":["$","body",null,{"children":["$","$L2",null,{"children":["$","$L3",null,{"children":["$","$L4",null,{"parallelRouterKey":"children","error":"$5","errorStyles":[],"errorScripts":[],"template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","$L7",null,{}],[]],"forbidden":"$undefined","unauthorized":"$undefined"}]}]}]}]}]]}],{"children":["branch",["$","$1","c",{"children":[null,["$","$L8",null,{"Component":"$9","slots":{"children":["$","$L4",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]},"params":{},"promise":"$@a"}]]}],{"children":["staff",["$","$1","c",{"children":[null,["$","$L4",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":["__PAGE__",["$","$1","c",{"children":[["$","$Lb",null,{"Component":"$c","searchParams":{},"params":"$0:f:0:1:2:children:1:props:children:1:props:params","promises":["$@d","$@e"]}],["$","$Lf",null,{"children":"$L10"}],null,["$","$L11",null,{"children":["$L12","$L13",["$","$L14",null,{"promise":"$@15"}]]}]]}],{},null,false]},null,false]},null,false]},null,false],["$","$1","h",{"children":[null,["$","$1","QxrBsbKl18dMFik5n5QZQ",{"children":[["$","$L16",null,{"children":"$L17"}],null]}],null]}],false]],"m":"$undefined","G":["$18","$undefined"],"s":false,"S":true}
+19:"$Sreact.suspense"
+1a:I[74911,[],"AsyncMetadata"]
+a:{}
+d:{}
+e:{}
+10:["$","$19",null,{"fallback":null,"children":["$","$L1a",null,{"promise":"$@1b"}]}]
+13:null
+17:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+12:null
+1b:{"metadata":[["$","title","0",{"children":"TiiBnTick Agency"}],["$","meta","1",{"name":"description","content":"Plateforme de gestion pour agences de livraison TiiBnTick"}]],"error":null,"digest":"$undefined"}
+15:{"metadata":"$1b:metadata","error":null,"digest":"$undefined"}

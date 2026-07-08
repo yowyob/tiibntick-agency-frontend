@@ -1,0 +1,184 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "dynamicRoutes": [
+    {
+      "page": "/livreur/missions/[id]",
+      "regex": "^/livreur/missions/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/livreur/missions/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/billing",
+      "regex": "^/billing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/billing(?:/)?$"
+    },
+    {
+      "page": "/branch",
+      "regex": "^/branch(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch(?:/)?$"
+    },
+    {
+      "page": "/branch/fleet",
+      "regex": "^/branch/fleet(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/fleet(?:/)?$"
+    },
+    {
+      "page": "/branch/hubs",
+      "regex": "^/branch/hubs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/hubs(?:/)?$"
+    },
+    {
+      "page": "/branch/login",
+      "regex": "^/branch/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/login(?:/)?$"
+    },
+    {
+      "page": "/branch/missions",
+      "regex": "^/branch/missions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/missions(?:/)?$"
+    },
+    {
+      "page": "/branch/staff",
+      "regex": "^/branch/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branch/staff(?:/)?$"
+    },
+    {
+      "page": "/branches",
+      "regex": "^/branches(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/branches(?:/)?$"
+    },
+    {
+      "page": "/fleet",
+      "regex": "^/fleet(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fleet(?:/)?$"
+    },
+    {
+      "page": "/hubs",
+      "regex": "^/hubs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/hubs(?:/)?$"
+    },
+    {
+      "page": "/livreur",
+      "regex": "^/livreur(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/livreur(?:/)?$"
+    },
+    {
+      "page": "/livreur/login",
+      "regex": "^/livreur/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/livreur/login(?:/)?$"
+    },
+    {
+      "page": "/livreur/missions",
+      "regex": "^/livreur/missions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/livreur/missions(?:/)?$"
+    },
+    {
+      "page": "/livreur/profile",
+      "regex": "^/livreur/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/livreur/profile(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/missions",
+      "regex": "^/missions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/missions(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    },
+    {
+      "page": "/register",
+      "regex": "^/register(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/register(?:/)?$"
+    },
+    {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
+    },
+    {
+      "page": "/staff",
+      "regex": "^/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/staff(?:/)?$"
+    },
+    {
+      "page": "/track",
+      "regex": "^/track(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/track(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "RSC",
+    "varyHeader": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, Next-Router-Segment-Prefetch",
+    "prefetchHeader": "Next-Router-Prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "Next-Router-Segment-Prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  },
+  "rewrites": []
+}

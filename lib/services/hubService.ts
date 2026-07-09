@@ -66,6 +66,7 @@ export const hubService = {
     capacityUnits: number;
     availableSpace: number;
     hasAvailableSpace: boolean;
+    projectedFromCore?: boolean;
   }> {
     return apiClient.get(`/hubs/${hubId}/occupancy`);
   },

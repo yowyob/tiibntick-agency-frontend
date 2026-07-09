@@ -1,4 +1,5 @@
-import { API_BASE_URL, PUBLIC_TENANT_ID } from '@/lib/config';
+import { API_BASE_URL, PUBLIC_TENANT_ID, USE_CORE_REALTIME } from '@/lib/config';
+import { subscribeCorePresence } from '@/lib/coreRealtime';
 import { getTenantId } from '@/lib/session';
 
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
@@ -17,7 +18,7 @@ export type RealtimeHandler = (event: {
 let sharedSocket: WebSocket | null = null;
 let sharedHandlers: Set<RealtimeHandler> = new Set();
 
-function ensureWebSocket(): WebSocket | null {
+function ensureAgencyWebSocket(): WebSocket | null {
   if (typeof window === 'undefined') return null;
   if (sharedSocket && sharedSocket.readyState <= WebSocket.OPEN) return sharedSocket;
 
@@ -36,15 +37,40 @@ function ensureWebSocket(): WebSocket | null {
   sharedSocket.onclose = () => {
     sharedSocket = null;
     setTimeout(() => {
-      if (sharedHandlers.size > 0) ensureWebSocket();
+      if (sharedHandlers.size > 0) ensureAgencyWebSocket();
     }, 3000);
   };
 
   return sharedSocket;
 }
 
+function ensureWebSocket(): WebSocket | null {
+  if (USE_CORE_REALTIME) return null;
+  return ensureAgencyWebSocket();
+}
+
 export function subscribeRealtime(handler: RealtimeHandler): () => void {
   sharedHandlers.add(handler);
+  if (USE_CORE_REALTIME) {
+    const unsubCore = subscribeCorePresence((update) => {
+      handler({
+        channel: 'tracking',
+        type: 'DELIVERER_LOCATION',
+        title: 'Position livreur',
+        body: 'Mise à jour GPS (Core)',
+        data: {
+          delivererId: update.userId,
+          latitude: update.latitude,
+          longitude: update.longitude,
+          source: 'core-stomp',
+        },
+      });
+    });
+    return () => {
+      sharedHandlers.delete(handler);
+      unsubCore();
+    };
+  }
   ensureWebSocket();
   return () => {
     sharedHandlers.delete(handler);

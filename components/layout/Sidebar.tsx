@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, Building2, GitBranch, Package,
   Truck, MapPin, Users, Receipt, Settings, LogOut, Search, Smartphone, Store,
-  ConciergeBell,
+  ConciergeBell, Scale,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { getAgencyId } from '@/lib/session'
@@ -32,6 +32,7 @@ const navSections = [
       { label: 'Missions', href: '/missions', icon: Package },
       { label: 'Flotte', href: '/fleet', icon: Truck },
       { label: 'Hubs Relais', href: '/hubs', icon: MapPin, isNew: true as const },
+      { label: 'Litiges & incidents', href: '/litiges', icon: Scale, isNew: true as const },
     ],
   },
   {

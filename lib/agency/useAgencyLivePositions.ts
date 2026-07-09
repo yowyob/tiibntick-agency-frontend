@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { getTenantId } from '@/lib/session';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, USE_CORE_REALTIME } from '@/lib/config';
+import { subscribeCorePresence } from '@/lib/coreRealtime';
 
 export interface LivePosition {
   lat: number;
@@ -27,6 +28,12 @@ export function useAgencyLivePositions(delivererIds: string[]) {
 
     const tenantId = getTenantId();
     if (!tenantId) return;
+
+    if (USE_CORE_REALTIME) {
+      return subscribeCorePresence((update) => {
+        applyUpdate(update.userId, update.latitude, update.longitude);
+      });
+    }
 
     const wsBase = API_BASE_URL.replace(/^http/, 'ws');
     const ws = new WebSocket(`${wsBase}/ws/realtime?tenantId=${encodeURIComponent(tenantId)}`);

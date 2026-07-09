@@ -31,7 +31,12 @@ export default function ConfigureHubDrawer({ hub, open, onClose, onSuccess }: Pr
   const [openingHours, setOpeningHours] = useState('')
   const [branchId, setBranchId] = useState('')
   const [status, setStatus] = useState<HubStatus>('OPEN')
-  const [occupancy, setOccupancy] = useState<{ current: number; capacity: number; available: number } | null>(null)
+  const [occupancy, setOccupancy] = useState<{
+    current: number;
+    capacity: number;
+    available: number;
+    fromCore?: boolean;
+  } | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const { success: toastSuccess, error: toastError } = useToast()
@@ -45,7 +50,12 @@ export default function ConfigureHubDrawer({ hub, open, onClose, onSuccess }: Pr
     setBranchId(hub.branchId ?? '')
     setStatus(hub.status === 'FULL' ? 'OPEN' : hub.status)
     void hubService.getOccupancy(hub.id).then(o => {
-      setOccupancy({ current: o.currentOccupancy, capacity: o.capacityUnits, available: o.availableSpace })
+      setOccupancy({
+        current: o.currentOccupancy,
+        capacity: o.capacityUnits,
+        available: o.availableSpace,
+        fromCore: o.projectedFromCore,
+      })
     }).catch(() => setOccupancy(null))
   }, [hub, open])
 
@@ -97,6 +107,11 @@ export default function ConfigureHubDrawer({ hub, open, onClose, onSuccess }: Pr
             <div className="bg-orange-50 border border-orange-100 rounded-lg px-4 py-3 text-sm">
               <p className="font-semibold text-orange-800 flex items-center gap-2">
                 <Settings size={14} /> Occupation temps réel
+                {occupancy.fromCore && (
+                  <span className="text-[9px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded uppercase">
+                    Core
+                  </span>
+                )}
               </p>
               <p className="text-orange-700 text-xs mt-1">
                 {occupancy.current}/{occupancy.capacity} colis · {occupancy.available} places libres

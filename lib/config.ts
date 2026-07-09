@@ -27,6 +27,17 @@ export const TNT_TRUST_BASE_URL =
 export const AGENCY_PUBLIC_BASE_URL =
   process.env.NEXT_PUBLIC_AGENCY_PUBLIC_BASE_URL ?? 'http://localhost:8081/agency';
 
+/** TiiBnTick Core WebSocket base — ex. wss://tiibntick-core.yowyob.com/ws */
+export const CORE_WS_URL =
+  process.env.NEXT_PUBLIC_CORE_WS_URL ?? 'wss://tiibntick-core.yowyob.com/ws';
+
+/**
+ * When true, live GPS / presence uses Core STOMP ({@link CORE_WS_URL}/realtime).
+ * Default false: Agency WS relay (Kafka projection) for backward compatibility.
+ */
+export const USE_CORE_REALTIME =
+  process.env.NEXT_PUBLIC_USE_CORE_REALTIME === 'true';
+
 /** Base URL API incluant le prefix `/agency/v1` */
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? `${AGENCY_PUBLIC_BASE_URL}/v1`;

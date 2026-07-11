@@ -186,7 +186,7 @@ function TrackPageContent() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
               <Package size={16} className="text-white" />
             </div>
@@ -194,7 +194,7 @@ function TrackPageContent() {
               <p className="font-bold text-gray-900 leading-none text-sm">TiiBnTick</p>
               <p className="text-xs text-gray-400">Suivi de colis</p>
             </div>
-          </div>
+          </Link>
           <Link
             href="/track/deposit"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-700 transition-colors"

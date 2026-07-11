@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 import { branchAuthService } from '@/lib/services/branchAuthService'
 import { formatUserError } from '@/lib/errors'
 import { useLoginWithMfa } from '@/lib/hooks/useLoginWithMfa'
@@ -51,13 +52,15 @@ export default function BranchLoginPage() {
       {/* Left panel — orange brand */}
       <div className="hidden lg:flex lg:w-2/5 bg-orange-500 flex-col justify-between p-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">TA</span>
-          </div>
-          <div>
-            <p className="text-white font-semibold text-sm">TiiBnTick Agency</p>
-            <p className="text-orange-100 text-xs">Rapid Express Douala</p>
-          </div>
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">TA</span>
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">TiiBnTick Agency</p>
+              <p className="text-orange-100 text-xs">Rapid Express Douala</p>
+            </div>
+          </Link>
         </div>
 
         <div>
@@ -80,6 +83,15 @@ export default function BranchLoginPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-sm">
           <div className="mb-8">
+            <Link
+              href="/"
+              className="mb-6 flex items-center gap-2 lg:hidden hover:opacity-90 transition-opacity"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500">
+                <span className="text-xs font-bold text-white">TA</span>
+              </div>
+              <span className="text-sm font-bold text-gray-900">TiiBnTick Agency</span>
+            </Link>
             <h2 className="text-2xl font-bold text-gray-900">Connexion</h2>
             <p className="text-sm text-gray-500 mt-1">Accédez à votre espace antenne</p>
           </div>
@@ -144,10 +156,14 @@ export default function BranchLoginPage() {
           )}
 
           <p className="mt-6 text-center text-xs text-gray-400">
-            Pas un responsable d'antenne ?{' '}
-            <a href="/login" className="text-orange-500 hover:underline font-medium">
+            Pas un responsable d&apos;antenne ?{' '}
+            <Link href="/login" className="text-orange-500 hover:underline font-medium">
               Portail Agence
-            </a>
+            </Link>
+            {' · '}
+            <Link href="/" className="text-orange-500 hover:underline font-medium">
+              Accueil
+            </Link>
           </p>
         </div>
       </div>

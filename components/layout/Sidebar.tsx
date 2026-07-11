@@ -15,7 +15,7 @@ import { intakeService } from '@/lib/services/intakeService'
 const navSections = [
   {
     items: [
-      { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     ],
   },
   {
@@ -108,8 +108,8 @@ export default function Sidebar() {
             )}
             <ul className="space-y-0.5">
               {section.items.map((item) => {
-                const isActive = item.href === '/'
-                  ? pathname === '/'
+                const isActive = item.href === '/dashboard'
+                  ? pathname === '/dashboard'
                   : pathname.startsWith(item.href)
                 const Icon = item.icon
                 return (

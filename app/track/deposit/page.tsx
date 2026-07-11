@@ -98,16 +98,18 @@ function DepositForm() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">
-          <Link href="/track" className="text-gray-400 hover:text-gray-600">
+          <Link href="/track" className="text-gray-400 hover:text-gray-600" aria-label="Retour au suivi">
             <ArrowLeft size={18} />
           </Link>
-          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-            <Package size={16} className="text-white" />
-          </div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm leading-none">Demande d&apos;expédition</p>
-            <p className="text-xs text-gray-400">Formulaire client</p>
-          </div>
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+              <Package size={16} className="text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm leading-none">Demande d&apos;expédition</p>
+              <p className="text-xs text-gray-400">Formulaire client</p>
+            </div>
+          </Link>
         </div>
       </header>
 

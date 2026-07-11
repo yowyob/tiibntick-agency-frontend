@@ -28,7 +28,7 @@ function PendingPageContent() {
       .catch(() => setKernelIdentityReady(registerService.isKernelIdentityReady()))
     authService.refreshSession()
       .then(session => {
-        if (session?.agencyActive) router.replace('/')
+        if (session?.agencyActive) router.replace('/dashboard')
       })
       .catch(() => undefined)
       .finally(() => setReady(true))
@@ -127,7 +127,7 @@ function PendingPageContent() {
           </div>
           <button
             onClick={() => authService.refreshSession().then(s => {
-              if (s?.agencyActive) window.location.href = '/'
+              if (s?.agencyActive) window.location.href = '/dashboard'
             })}
             className="mt-4 text-sm text-orange-600 hover:text-orange-700 font-medium"
           >

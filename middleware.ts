@@ -6,6 +6,7 @@ import { claimRoles, claimString, isPlatformAdmin, parseJwtPayload } from '@/lib
 const PUBLIC_PATHS = ['/login', '/register', '/pending', '/track', '/admin/login'];
 
 function isPublic(pathname: string): boolean {
+  if (pathname === '/') return true;
   if (PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(`${p}/`))) return true;
   if (pathname.startsWith('/livreur')) return true;
   if (pathname.startsWith('/branch')) return true;

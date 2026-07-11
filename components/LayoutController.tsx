@@ -11,9 +11,9 @@ const STANDALONE_PREFIXES = ['/login', '/register', '/pending', '/track', '/livr
 
 export default function LayoutController({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isStandalone = STANDALONE_PREFIXES.some(
-    r => pathname === r || pathname.startsWith(r + '/'),
-  )
+  const isStandalone =
+    pathname === '/' ||
+    STANDALONE_PREFIXES.some(r => pathname === r || pathname.startsWith(r + '/'))
 
   if (isStandalone) {
     return (

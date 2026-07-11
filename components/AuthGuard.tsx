@@ -40,7 +40,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (active && pathname === '/pending') {
-      router.replace('/')
+      router.replace('/dashboard')
     }
   }, [pathname, router])
 

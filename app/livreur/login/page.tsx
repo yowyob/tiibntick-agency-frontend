@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Package, Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import Link from 'next/link'
 import { livreurAuthService } from '@/lib/services/livreurAuthService'
 import { formatUserError } from '@/lib/errors'
 import { useToast } from '@/contexts/ToastContext'
@@ -51,13 +52,15 @@ export default function LivreurLoginPage() {
     <div className="flex flex-col min-h-screen bg-orange-500">
       <div className="px-6 pt-14 pb-20 flex-shrink-0">
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Package size={22} className="text-white" />
-          </div>
-          <div>
-            <p className="text-[10px] font-semibold text-white/60 tracking-widest uppercase">TiiBnTick Agency</p>
-            <p className="text-base font-bold text-white leading-tight">Espace Livreur</p>
-          </div>
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Package size={22} className="text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold text-white/60 tracking-widest uppercase">TiiBnTick Agency</p>
+              <p className="text-base font-bold text-white leading-tight">Espace Livreur</p>
+            </div>
+          </Link>
         </div>
         <h1 className="text-3xl font-bold text-white leading-tight mb-2">
           Bonjour,<br />connectez-vous
@@ -130,6 +133,10 @@ export default function LivreurLoginPage() {
         )}
         <p className="mt-8 text-xs text-gray-500 text-center leading-relaxed">
           Compte créé par votre agence (Personnel → Livreurs).
+          <br />
+          <Link href="/" className="mt-2 inline-block font-medium text-orange-500 hover:underline">
+            ← Retour à l&apos;accueil
+          </Link>
         </p>
       </div>
     </div>

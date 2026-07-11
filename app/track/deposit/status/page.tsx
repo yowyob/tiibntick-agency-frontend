@@ -44,10 +44,12 @@ function StatusContent() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-lg mx-auto flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-            <Package size={16} className="text-white" />
-          </div>
-          <p className="font-bold text-gray-900 text-sm">Suivi de demande</p>
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+              <Package size={16} className="text-white" />
+            </div>
+            <p className="font-bold text-gray-900 text-sm">Suivi de demande</p>
+          </Link>
         </div>
       </header>
 

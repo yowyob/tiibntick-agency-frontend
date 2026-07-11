@@ -3,6 +3,15 @@
 import { Loader2 } from 'lucide-react';
 import Drawer from '@/components/forms/Drawer';
 import type { DisputeDetail, IncidentDetail } from '@/lib/services/complianceService';
+import {
+  disputeCategoryLabel,
+  disputePriorityLabel,
+  disputeStatusLabel,
+  incidentSeverityLabel,
+  incidentStatusLabel,
+  incidentTypeLabel,
+  missionRefLabel,
+} from '@/lib/displayLabels';
 
 interface Props {
   mode: 'dispute' | 'incident';
@@ -17,7 +26,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0 gap-4">
       <span className="text-sm text-gray-500 shrink-0">{label}</span>
-      <span className="text-sm font-medium text-gray-900 text-right break-all">{value}</span>
+      <span className="text-sm font-medium text-gray-900 text-right break-words">{value}</span>
     </div>
   );
 }
@@ -47,13 +56,17 @@ export default function ComplianceDetailDrawer({
         </div>
       ) : mode === 'dispute' && dispute ? (
         <div className="p-6 space-y-2">
-          <Row label="Statut" value={dispute.status} />
-          <Row label="Catégorie" value={dispute.category} />
-          <Row label="Priorité" value={dispute.priority} />
-          <Row label="Mission" value={dispute.missionId ?? '—'} />
+          <Row label="Statut" value={disputeStatusLabel(dispute.status)} />
+          <Row label="Catégorie" value={disputeCategoryLabel(dispute.category)} />
+          <Row label="Priorité" value={disputePriorityLabel(dispute.priority)} />
+          <Row
+            label="Mission"
+            value={missionRefLabel({
+              trackingCode: dispute.trackingCode,
+              reference: dispute.reference,
+            })}
+          />
           <Row label="Tracking" value={dispute.trackingCode ?? '—'} />
-          <Row label="Réclamant" value={dispute.claimantId ?? '—'} />
-          <Row label="Médiateur" value={dispute.assignedMediatorId ?? '—'} />
           <Row label="Preuves" value={String(dispute.evidenceCount)} />
           <Row label="Déposé le" value={formatDate(dispute.filedAt)} />
           <Row label="Échéance SLA" value={formatDate(dispute.deadline)} />
@@ -64,10 +77,16 @@ export default function ComplianceDetailDrawer({
         </div>
       ) : mode === 'incident' && incident ? (
         <div className="p-6 space-y-2">
-          <Row label="Statut" value={incident.status} />
-          <Row label="Type" value={incident.type} />
-          <Row label="Sévérité" value={incident.severity ?? '—'} />
-          <Row label="Mission" value={incident.missionId ?? '—'} />
+          <Row label="Statut" value={incidentStatusLabel(incident.status)} />
+          <Row label="Type" value={incidentTypeLabel(incident.type)} />
+          <Row
+            label="Sévérité"
+            value={incident.severity ? incidentSeverityLabel(incident.severity) : '—'}
+          />
+          <Row
+            label="Mission"
+            value={missionRefLabel({ reference: incident.referenceCode })}
+          />
           <Row label="SLA dépassé" value={incident.slaBreached ? 'Oui' : 'Non'} />
           <Row label="Signalé le" value={formatDate(incident.reportedAt)} />
           <Row label="Résolu le" value={formatDate(incident.resolvedAt)} />

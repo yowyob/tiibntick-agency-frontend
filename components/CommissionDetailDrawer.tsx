@@ -181,6 +181,8 @@ export default function CommissionDetailDrawer({ commission, open, onClose, onAc
                 label=""
                 hint="Photo, capture d'écran ou PDF — max 5 Mo"
                 accept="image/*,.pdf"
+                category="commission-dispute"
+                entityId={commission.id}
               />
             </div>
           )}
@@ -193,6 +195,8 @@ export default function CommissionDetailDrawer({ commission, open, onClose, onAc
                 label=""
                 hint="Reçu de virement, capture d'écran — image ou PDF"
                 accept="image/*,.pdf"
+                category="commission-payment"
+                entityId={commission.id}
               />
             </div>
           )}

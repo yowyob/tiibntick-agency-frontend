@@ -404,6 +404,8 @@ export default function MissionDetailDrawer({ mission, open, onClose, onAction }
             label=""
             hint="Photo signature, photo dépôt — image ou PDF"
             accept="image/*,.pdf"
+            category="delivery-proof"
+            entityId={mission.id}
           />
         </div>
       )}
@@ -416,6 +418,8 @@ export default function MissionDetailDrawer({ mission, open, onClose, onAction }
             label=""
             hint="Photo ou document justificatif de l'échec"
             accept="image/*,.pdf"
+            category="anomaly-proof"
+            entityId={mission.id}
           />
         </div>
       )}

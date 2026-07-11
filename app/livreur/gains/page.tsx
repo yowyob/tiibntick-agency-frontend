@@ -111,7 +111,9 @@ export default function LivreurGainsPage() {
                     <p className="text-sm font-bold text-gray-900">
                       {r.amount.toLocaleString('fr-FR')} {r.currency}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-mono mt-0.5">Mission {r.missionId.slice(0, 8)}…</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {r.manifestNumber || 'Mission'}
+                    </p>
                     <p className="text-[10px] text-gray-400">{new Date(r.calculatedAt).toLocaleDateString('fr-FR')}</p>
                   </div>
                   <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[r.status]}`}>

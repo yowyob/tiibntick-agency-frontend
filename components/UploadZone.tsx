@@ -3,22 +3,37 @@
 import { useState, useRef } from 'react'
 import { Upload, FileText, X, Loader2 } from 'lucide-react'
 import { mediaService } from '@/lib/services/mediaService'
+import { formatUserError } from '@/lib/errors'
 
 interface Props {
   label: string
   hint?: string
   accept?: string
   category?: string
+  /** When set, uploaded proofs are scoped to this entity (mission, contract, …). */
+  entityId?: string
   onUpload?: (url: string) => void
+  onError?: (message: string) => void
 }
 
-export default function UploadZone({ label, hint, accept = 'image/*,.pdf', category = 'general', onUpload }: Props) {
+export default function UploadZone({
+  label,
+  hint,
+  accept = 'image/*,.pdf',
+  category = 'general',
+  entityId,
+  onUpload,
+  onError,
+}: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const apply = async (f: File) => {
+    setError(null)
     setFile(f)
     if (f.type.startsWith('image/')) {
       if (preview) URL.revokeObjectURL(preview)
@@ -26,14 +41,24 @@ export default function UploadZone({ label, hint, accept = 'image/*,.pdf', categ
     } else {
       setPreview(null)
     }
-    if (onUpload) {
-      setUploading(true)
-      try {
-        const url = await mediaService.uploadFile(f, category)
-        onUpload(url)
-      } finally {
-        setUploading(false)
-      }
+    setUploading(true)
+    try {
+      const url = entityId
+        ? await mediaService.uploadDocument(entityId, category, f)
+        : await mediaService.uploadFile(f, category)
+      setUploadedUrl(url)
+      onUpload?.(url)
+    } catch (e) {
+      const message = formatUserError(e, 'Impossible d’enregistrer le fichier. Réessayez.')
+      setError(message)
+      onError?.(message)
+      setFile(null)
+      if (preview) URL.revokeObjectURL(preview)
+      setPreview(null)
+      setUploadedUrl(null)
+      if (inputRef.current) inputRef.current.value = ''
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -41,14 +66,18 @@ export default function UploadZone({ label, hint, accept = 'image/*,.pdf', categ
     if (preview) URL.revokeObjectURL(preview)
     setFile(null)
     setPreview(null)
+    setUploadedUrl(null)
+    setError(null)
     if (inputRef.current) inputRef.current.value = ''
   }
 
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{label}</p>
+      {label ? (
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{label}</p>
+      ) : null}
       <input ref={inputRef} type="file" accept={accept} className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) apply(f) }} />
+        onChange={e => { const f = e.target.files?.[0]; if (f) void apply(f) }} />
       {file ? (
         <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-white">
           {preview ? (
@@ -60,7 +89,10 @@ export default function UploadZone({ label, hint, accept = 'image/*,.pdf', categ
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-            <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(0)} Ko · {file.type.includes('pdf') ? 'PDF' : 'Image'}</p>
+            <p className="text-xs text-gray-400">
+              {(file.size / 1024).toFixed(0)} Ko · {file.type.includes('pdf') ? 'PDF' : 'Image'}
+              {uploadedUrl ? ' · Enregistré' : ''}
+            </p>
           </div>
           {uploading ? (
             <Loader2 size={14} className="text-orange-500 animate-spin flex-shrink-0" />
@@ -75,7 +107,7 @@ export default function UploadZone({ label, hint, accept = 'image/*,.pdf', categ
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) apply(f) }}
+          onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void apply(f) }}
           onDragOver={e => e.preventDefault()}
           className="w-full flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl hover:border-orange-300 hover:bg-orange-50/30 transition-colors text-left"
         >
@@ -90,6 +122,7 @@ export default function UploadZone({ label, hint, accept = 'image/*,.pdf', categ
           </div>
         </button>
       )}
+      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
     </div>
   )
 }

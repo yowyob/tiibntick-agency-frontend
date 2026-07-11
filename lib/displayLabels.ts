@@ -105,3 +105,119 @@ const MISSION_STATUS_LABELS: Record<string, string> = {
 export function missionStatusLabel(status: string): string {
   return MISSION_STATUS_LABELS[status] ?? 'Étape logistique';
 }
+
+const DISPUTE_STATUS_LABELS: Record<string, string> = {
+  OPEN: 'Ouvert',
+  INVESTIGATING: 'Enquête en cours',
+  MEDIATION: 'Médiation',
+  RESOLVED: 'Résolu',
+  CLOSED: 'Clôturé',
+  WITHDRAWN: 'Retiré',
+};
+
+const DISPUTE_CATEGORY_LABELS: Record<string, string> = {
+  DELAY: 'Retard de livraison',
+  DAMAGE: 'Colis endommagé',
+  LOSS: 'Colis perdu',
+  BILLING: 'Facturation',
+  SERVICE: 'Qualité de service',
+  OTHER: 'Autre',
+};
+
+const DISPUTE_PRIORITY_LABELS: Record<string, string> = {
+  LOW: 'Basse',
+  NORMAL: 'Normale',
+  MEDIUM: 'Moyenne',
+  HIGH: 'Haute',
+  URGENT: 'Urgente',
+};
+
+const INCIDENT_STATUS_LABELS: Record<string, string> = {
+  REPORTED: 'Signalé',
+  TRIAGED: 'Trié',
+  IN_PROGRESS: 'En cours',
+  RESOLVED: 'Résolu',
+  CLOSED: 'Clôturé',
+  CANCELLED: 'Annulé',
+};
+
+const INCIDENT_TYPE_LABELS: Record<string, string> = {
+  ACCIDENT: 'Accident',
+  THEFT: 'Vol',
+  DAMAGE: 'Dommage',
+  DELAY: 'Retard',
+  CUSTOMER_COMPLAINT: 'Plainte client',
+  VEHICLE_BREAKDOWN: 'Panne véhicule',
+  OTHER: 'Autre',
+};
+
+const INCIDENT_SEVERITY_LABELS: Record<string, string> = {
+  LOW: 'Faible',
+  MEDIUM: 'Moyenne',
+  HIGH: 'Élevée',
+  CRITICAL: 'Critique',
+};
+
+const INVOICE_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Brouillon',
+  ISSUED: 'Émise',
+  SENT: 'Envoyée',
+  PAID: 'Payée',
+  OVERDUE: 'En retard',
+  CANCELLED: 'Annulée',
+  VOID: 'Annulée',
+};
+
+const AGENCY_STATUS_LABELS: Record<string, string> = {
+  PENDING: 'En attente',
+  ACTIVE: 'Active',
+  SUSPENDED: 'Suspendue',
+  REJECTED: 'Refusée',
+  CLOSED: 'Fermée',
+};
+
+export function disputeStatusLabel(status: string): string {
+  return DISPUTE_STATUS_LABELS[status] ?? safeLabel(status, 'Statut inconnu');
+}
+
+export function disputeCategoryLabel(category: string): string {
+  return DISPUTE_CATEGORY_LABELS[category] ?? safeLabel(category, 'Catégorie');
+}
+
+export function disputePriorityLabel(priority: string): string {
+  return DISPUTE_PRIORITY_LABELS[priority] ?? safeLabel(priority, 'Priorité');
+}
+
+export function incidentStatusLabel(status: string): string {
+  return INCIDENT_STATUS_LABELS[status] ?? safeLabel(status, 'Statut inconnu');
+}
+
+export function incidentTypeLabel(type: string): string {
+  return INCIDENT_TYPE_LABELS[type] ?? safeLabel(type, 'Type d\'incident');
+}
+
+export function incidentSeverityLabel(severity: string): string {
+  return INCIDENT_SEVERITY_LABELS[severity] ?? safeLabel(severity, 'Sévérité');
+}
+
+export function invoiceStatusLabel(status: string): string {
+  return INVOICE_STATUS_LABELS[status] ?? safeLabel(status, 'Statut facture');
+}
+
+export function agencyStatusLabel(status: string): string {
+  return AGENCY_STATUS_LABELS[status] ?? safeLabel(status, 'Statut');
+}
+
+/** Référence mission lisible — jamais un UUID tronqué. */
+export function missionRefLabel(opts: {
+  trackingCode?: string | null;
+  manifestNumber?: string | null;
+  reference?: string | null;
+}): string {
+  return (
+    safeLabel(opts.trackingCode, '') ||
+    safeLabel(opts.manifestNumber, '') ||
+    safeLabel(opts.reference, '') ||
+    'Mission liée'
+  );
+}

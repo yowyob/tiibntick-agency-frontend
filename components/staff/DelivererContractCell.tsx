@@ -35,7 +35,7 @@ export default function DelivererContractCell({
         onOpenContract(contract);
       }}
       className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 underline-offset-2 hover:underline"
-      title={`Contrat ${contract.id.slice(0, 8)}…`}
+      title="Voir le contrat"
     >
       {label}
     </button>

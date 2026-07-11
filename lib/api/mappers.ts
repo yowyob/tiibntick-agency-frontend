@@ -18,7 +18,7 @@ import type {
   Hub, HubParcelRecord, BillingPolicy, CommissionRecord, FreelancerAssociation,
   VehicleStatus, VehicleType, HubStatus,
 } from '@/lib/types';
-import { delivererDisplayName, manifestDisplay } from '@/lib/displayLabels';
+import { delivererDisplayName, manifestDisplay, safeLabel } from '@/lib/displayLabels';
 
 /**
  * Normalise un taux API vers un pourcentage affichable (15 = « 15 % »).
@@ -171,9 +171,11 @@ export function mapVehicle(dto: VehicleDto): Vehicle {
     maxWeightKg: dto.maxWeightKg ?? 0,
     maxVolumeM3: dto.maxVolumeM3 ?? 0,
     assignedDelivererId: dto.assignedDelivererId,
-    assignedDelivererName: dto.assignedDelivererName,
+    assignedDelivererName: dto.assignedDelivererName
+      ? delivererDisplayName(dto.assignedDelivererName)
+      : undefined,
     branchId: dto.branchId,
-    branchName: dto.branchName,
+    branchName: safeLabel(dto.branchName, '') || undefined,
     lastMaintenanceDate: dto.lastMaintenanceDate,
     photoUrl: dto.photoUrl,
     source: dto.source === 'FLEETMAN' ? 'FLEETMAN' : 'AGENCY',
@@ -186,15 +188,17 @@ export function mapMission(dto: MissionDto): Mission {
     id: dto.id,
     agencyId: dto.agencyId,
     branchId: dto.branchId ?? '',
-    branchName: dto.branchName ?? '',
+    branchName: safeLabel(dto.branchName, ''),
     manifestNumber: manifestDisplay(dto.manifestNumber),
     delivererId: dto.assignedDelivererId,
-    delivererName: dto.assignedDelivererName,
-    vehiclePlate: dto.vehiclePlate,
+    delivererName: dto.assignedDelivererName
+      ? delivererDisplayName(dto.assignedDelivererName)
+      : undefined,
+    vehiclePlate: safeLabel(dto.vehiclePlate, '') || undefined,
     status: dto.status as Mission['status'],
     priority: (dto.priority ?? 'NORMAL') as Mission['priority'],
-    senderName: dto.senderName ?? '',
-    recipientName: dto.recipientName ?? '',
+    senderName: safeLabel(dto.senderName, ''),
+    recipientName: safeLabel(dto.recipientName, ''),
     recipientPhone: dto.recipientPhone ?? '',
     pickupAddress: dto.pickupAddress ?? '',
     deliveryAddress: dto.deliveryAddress ?? '',
@@ -207,7 +211,7 @@ export function mapMission(dto: MissionDto): Mission {
     sellingPrice: dto.sellingPrice ?? (dto as { quotedAmount?: number }).quotedAmount ?? 0,
     currency: dto.currency ?? 'XAF',
     targetHubId: dto.targetHubId,
-    targetHubName: dto.targetHubName,
+    targetHubName: safeLabel(dto.targetHubName, '') || undefined,
     createdAt: dto.createdAt?.slice(0, 10) ?? '',
   };
 }
@@ -291,9 +295,9 @@ export function mapCommission(dto: CommissionRecordDto): CommissionRecord {
     id: dto.id,
     agencyId: dto.agencyId,
     delivererId: dto.delivererId,
-    delivererName: dto.delivererName ?? '',
+    delivererName: delivererDisplayName(dto.delivererName),
     missionId: dto.missionId ?? '',
-    manifestNumber: dto.manifestNumber ?? '',
+    manifestNumber: safeLabel(dto.manifestNumber, '') || '',
     amount: dto.amount,
     currency: dto.currency,
     status: dto.status as CommissionRecord['status'],

@@ -49,9 +49,6 @@ export default function AdminOnboardingListPage() {
                     )}
                   </div>
                   <p className="text-sm text-slate-400">{item.ownerName} · {item.ownerEmail}</p>
-                  <p className="text-xs text-slate-500 mt-1 font-mono">
-                    {item.agencyId} · tenant {item.tenantId}
-                  </p>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Soumis le {new Date(item.submittedAt).toLocaleDateString('fr-FR')}
                   </p>

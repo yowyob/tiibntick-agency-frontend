@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react'
 import { getUserEmail } from '@/lib/session'
 import { fleetManService } from '@/lib/services/fleetManService'
+import { formatUserError } from '@/lib/errors'
 
 function openFleetMan(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
@@ -30,7 +31,6 @@ export default function FleetManConnectButton({ onSynced }: { onSynced?: () => v
     }
   }
 
-  // lazy status on first interaction
   const ensureStatus = async () => {
     if (linked === null) await loadStatus()
   }
@@ -51,7 +51,7 @@ export default function FleetManConnectButton({ onSynced }: { onSynced?: () => v
       const launch = await fleetManService.launch()
       openFleetMan(launch.redirectUrl)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Impossible d’ouvrir FleetMan')
+      setError(formatUserError(e, 'Impossible d’ouvrir FleetMan. Vérifiez votre session et réessayez.'))
     } finally {
       setBusy(false)
     }
@@ -82,7 +82,7 @@ export default function FleetManConnectButton({ onSynced }: { onSynced?: () => v
       openFleetMan(result.redirectUrl)
       onSynced?.()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Connexion FleetMan impossible')
+      setError(formatUserError(e, 'Connexion FleetMan impossible. Vérifiez le mot de passe et réessayez.'))
     } finally {
       setBusy(false)
     }
@@ -97,7 +97,7 @@ export default function FleetManConnectButton({ onSynced }: { onSynced?: () => v
       setHint(`Sync : ${r.created} créé(s), ${r.linked} lié(s)${r.failed.length ? `, ${r.failed.length} échec(s)` : ''}.`)
       onSynced?.()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Synchronisation impossible')
+      setError(formatUserError(e, 'Synchronisation FleetMan impossible. Réessayez dans un instant.'))
     } finally {
       setSyncBusy(false)
     }

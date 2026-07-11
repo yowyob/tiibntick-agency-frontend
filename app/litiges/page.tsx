@@ -12,6 +12,7 @@ import {
 } from '@/lib/services/complianceService';
 import { useService } from '@/lib/hooks/useService';
 import { formatUserError } from '@/lib/errors';
+import { disputeCategoryLabel, incidentTypeLabel } from '@/lib/displayLabels';
 
 const DISPUTE_STATUS_LABELS: Record<string, string> = {
   OPEN: 'Ouvert',
@@ -129,8 +130,8 @@ export default function LitigesPage() {
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={18} className="shrink-0 mt-0.5" />
           <p>
-            Mode local : activez <code className="font-mono text-xs">TNT_CORE_CORE_FIRST_INCIDENTS=true</code> pour
-            charger les litiges et incidents depuis TiiBnTick Core.
+            Les litiges et incidents sont affichés en mode local. Contactez un administrateur
+            pour activer la synchronisation avec TiiBnTick Core.
           </p>
         </div>
       )}
@@ -195,8 +196,8 @@ export default function LitigesPage() {
                   >
                     <td className="px-4 py-3 font-mono text-xs text-gray-900">{d.reference}</td>
                     <td className="px-4 py-3"><StatusBadge status={d.status} labels={DISPUTE_STATUS_LABELS} /></td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{d.category}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 font-mono">{d.trackingCode ?? d.missionId?.slice(0, 8) ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{disputeCategoryLabel(d.category)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{d.trackingCode ?? '—'}</td>
                     <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{d.description}</td>
                     <td className="px-4 py-3 text-xs text-gray-400">
                       {d.filedAt ? new Date(d.filedAt).toLocaleString('fr-FR') : '—'}
@@ -239,8 +240,10 @@ export default function LitigesPage() {
                   >
                     <td className="px-4 py-3 font-mono text-xs text-gray-900">{i.referenceCode}</td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} labels={INCIDENT_STATUS_LABELS} /></td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{i.type}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 font-mono">{i.missionId?.slice(0, 8) ?? '—'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {incidentTypeLabel(i.type)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">{i.referenceCode ? 'Liée' : '—'}</td>
                     <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{i.description}</td>
                     <td className="px-4 py-3 text-xs text-gray-400">
                       {i.reportedAt ? new Date(i.reportedAt).toLocaleString('fr-FR') : '—'}

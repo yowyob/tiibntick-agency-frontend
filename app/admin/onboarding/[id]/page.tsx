@@ -109,8 +109,8 @@ export default function AdminOnboardingDetailPage() {
                 {kernelReady ? 'Identité candidat enregistrée — approbation possible' : 'Identité candidat manquante — approbation bloquée'}
               </p>
               {detail.summary.kernelBusinessActorId && (
-                <p className="text-slate-500 text-xs font-mono">
-                  BusinessActor : {detail.summary.kernelBusinessActorId}
+                <p className="text-slate-500 text-xs">
+                  Identité Kernel synchronisée
                 </p>
               )}
             </div>
@@ -211,11 +211,6 @@ function KycDocumentRow({ label, mediaKey }: { label: string; mediaKey?: string 
           <span className="text-slate-500 text-xs">Non fourni</span>
         )}
       </div>
-      {mediaKey && (
-        <p className="text-[10px] text-slate-600 font-mono mt-1 pl-7 truncate">
-          {mediaService.isMediaId(mediaKey) ? `media:${mediaKey}` : mediaKey}
-        </p>
-      )}
       {error && <p className="text-xs text-red-400 mt-1 pl-7">{error}</p>}
     </div>
   )

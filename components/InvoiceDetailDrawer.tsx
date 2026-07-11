@@ -9,7 +9,7 @@ import Drawer from '@/components/forms/Drawer'
 import UploadableAvatar from '@/components/UploadableAvatar'
 import UploadZone from '@/components/UploadZone'
 import { useAgencyLookups } from '@/lib/hooks/useAgencyLookups'
-import { missionSubtitle } from '@/lib/displayLabels'
+import { missionSubtitle, invoiceStatusLabel } from '@/lib/displayLabels'
 import { billingService } from '@/lib/services/billingService'
 import { useToast } from '@/contexts/ToastContext'
 import { toastErrorMessage } from '@/lib/toastError'
@@ -89,7 +89,7 @@ export default function InvoiceDetailDrawer({ mission, open, onClose }: Props) {
       if (pdfUrl) {
         window.open(pdfUrl, '_blank', 'noopener,noreferrer')
       } else {
-        toastError('Le PDF n\'est pas encore disponible (TiiBnTick Billing Invoice).')
+        toastError('Le PDF n\'a pas pu être récupéré. Vérifiez que la facture est liée au billing Core.')
       }
     } catch (err) {
       toastError(toastErrorMessage(err, 'Impossible de télécharger la facture PDF.'))
@@ -140,7 +140,7 @@ export default function InvoiceDetailDrawer({ mission, open, onClose }: Props) {
         <div className="px-6 py-3 bg-emerald-50 border-b border-gray-100 flex items-center gap-2">
           <CheckCircle2 size={15} className="text-emerald-600" />
           <span className="text-sm font-medium text-emerald-700">
-            {invoice ? `Facture ${invoice.reference} · ${invoice.status}` : 'Livraison confirmée — Facturée'}
+            {invoice ? `Facture ${invoice.reference} · ${invoiceStatusLabel(invoice.status)}` : 'Livraison confirmée — Facturée'}
           </span>
           {loadingInvoice && <Loader2 size={14} className="animate-spin text-emerald-600 ml-auto" />}
           {!loadingInvoice && invoice?.createdAt && (
@@ -271,7 +271,7 @@ export default function InvoiceDetailDrawer({ mission, open, onClose }: Props) {
               {invoice && (
                 <>
                   <Row label="Référence facture" value={<span className="font-mono">{invoice.reference}</span>} />
-                  <Row label="Statut facture" value={invoice.status} />
+                  <Row label="Statut facture" value={invoiceStatusLabel(invoice.status)} />
                 </>
               )}
               <Row label="Nombre de colis" value={`${mission.packagesCount} colis`} />
@@ -297,6 +297,8 @@ export default function InvoiceDetailDrawer({ mission, open, onClose }: Props) {
               label=""
               hint="Reçu de paiement, capture d'écran — image ou PDF"
               accept="image/*,.pdf"
+              category="payment-proof"
+              entityId={invoice?.id ?? mission.id}
             />
           </div>
 

@@ -49,7 +49,7 @@ function isTechnicalMessage(message: string): boolean {
   if (isUuid(trimmed)) return true;
   if (TECHNICAL_PATTERNS.some(p => p.test(trimmed))) return true;
   if (/^[A-Z][A-Z0-9_]+$/.test(trimmed)) return true;
-  if (trimmed.length > 180) return true;
+  if (trimmed.length > 280) return true;
   return false;
 }
 
@@ -93,7 +93,7 @@ export function formatUserError(error: unknown, fallback: string): string {
   const status = extractStatus(error);
   if (status && HTTP_MESSAGES[status]) {
     const raw = extractRawMessage(error);
-    if (raw && !isTechnicalMessage(raw) && raw.length <= 120) {
+    if (raw && !isTechnicalMessage(raw) && raw.length <= 280) {
       return raw;
     }
     return HTTP_MESSAGES[status];

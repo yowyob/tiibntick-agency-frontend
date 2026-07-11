@@ -282,6 +282,8 @@ export default function ContractDetailDrawer({ contract, open, onClose, onAction
               label=""
               hint="Contrat signé — PDF ou image scan"
               accept="image/*,.pdf"
+              category="contract"
+              entityId={contract.id}
             />
           </div>
 

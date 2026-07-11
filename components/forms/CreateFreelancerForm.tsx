@@ -161,7 +161,6 @@ export default function CreateFreelancerForm({ open, onClose, onSuccess }: Props
                 <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4">
                   <p className="text-sm font-semibold text-emerald-900">{form.freelancerName}</p>
                   {form.phone && <p className="text-xs text-emerald-700 mt-0.5">{form.phone}</p>}
-                  <p className="text-[10px] text-emerald-600 font-mono mt-1">{form.freelancerActorId}</p>
                 </div>
               ) : (
                 <p className="text-sm text-gray-400 italic">Aucun freelancer sélectionné — utilisez la recherche.</p>

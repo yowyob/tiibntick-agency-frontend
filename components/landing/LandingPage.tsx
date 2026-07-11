@@ -121,6 +121,31 @@ export default function LandingPage() {
     }
   }, [])
 
+  /** Demande l’autorisation de localisation à l’ouverture du site. */
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        try {
+          sessionStorage.setItem(
+            'tnt-geo',
+            JSON.stringify({
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude,
+              at: Date.now(),
+            }),
+          )
+        } catch {
+          /* ignore quota / private mode */
+        }
+      },
+      () => {
+        /* refus ou erreur : on n’insiste pas */
+      },
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 },
+    )
+  }, [])
+
   useEffect(() => {
     if (!connOpen) return
     const close = () => setConnOpen(false)
@@ -235,13 +260,13 @@ export default function LandingPage() {
               <HeroTextMotif tone={theme === 'dark' ? 'dark' : 'light'} />
             </div>
             <div className="relative z-10">
-            <p className="font-display text-sm font-semibold tracking-[0.12em] text-orange-500 uppercase">
+            <p className="font-display text-sm font-bold tracking-[0.12em] text-orange-500 uppercase">
               TiiBnTick Agency
             </p>
-            <h1 className="mt-3 font-display text-4xl font-semibold italic leading-[1.08] tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-[2.85rem] xl:text-[3.15rem]">
+            <h1 className="mt-3 font-display text-4xl font-bold italic leading-[1.08] tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-[2.85rem] xl:text-[3.15rem]">
               Le poste de pilotage de votre agence de livraison.
             </h1>
-            <p className="mt-4 max-w-md text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg">
+            <p className="mt-4 max-w-md text-base font-semibold leading-relaxed text-slate-700 dark:text-slate-300 sm:text-lg">
               Missions, antennes, hubs relais, livreurs et facturation — centralisés pour diriger
               l’opération au quotidien.
             </p>

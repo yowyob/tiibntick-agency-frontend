@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bell, Shield, Globe, Zap, Moon, Sun, Monitor, Save, Loader2 } from 'lucide-react'
+import { Bell, Shield, Globe, Zap, Moon, Sun, Save, Loader2 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { agencyService } from '@/lib/services/agencyService'
 import { getAgencyId } from '@/lib/session'
@@ -124,24 +124,16 @@ export default function SettingsPage() {
             <p className="text-xs text-gray-400">Choisir le thème d&apos;affichage de la plateforme</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { id: 'light' as const, label: 'Clair', icon: Sun, desc: 'Interface lumineuse' },
+            { id: 'light' as const, label: 'Clair', icon: Sun, desc: 'Par défaut — interface lumineuse' },
             { id: 'dark'  as const, label: 'Sombre', icon: Moon, desc: 'Bleu nuit — reposant' },
-            { id: 'system' as const, label: 'Système', icon: Monitor, desc: 'Suit votre OS' },
           ].map(opt => {
-            const active = opt.id === 'system' ? false : theme === opt.id
+            const active = theme === opt.id
             return (
               <button
                 key={opt.id}
-                onClick={() => {
-                  if (opt.id === 'system') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-                    setTheme(prefersDark ? 'dark' : 'light')
-                  } else {
-                    setTheme(opt.id)
-                  }
-                }}
+                onClick={() => setTheme(opt.id)}
                 className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                   active ? 'border-orange-400 bg-orange-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}

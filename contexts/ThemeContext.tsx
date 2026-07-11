@@ -8,21 +8,25 @@ interface ThemeCtx { theme: Theme; toggleTheme: () => void; setTheme: (t: Theme)
 
 const ThemeContext = createContext<ThemeCtx>({ theme: 'light', toggleTheme: () => {}, setTheme: () => {} })
 
+const THEME_KEY = 'tnt-theme'
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light')
 
   useEffect(() => {
-    const stored = localStorage.getItem('tnt-theme') as Theme | null
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const initial = stored ?? (prefersDark ? 'dark' : 'light')
+    const stored = localStorage.getItem(THEME_KEY) as Theme | null
+    // Premier visit : toujours clair. Ensuite : choix utilisateur mémorisé.
+    const initial: Theme = stored === 'dark' || stored === 'light' ? stored : 'light'
     setThemeState(initial)
     document.documentElement.classList.toggle('dark', initial === 'dark')
+    document.documentElement.style.colorScheme = initial
   }, [])
 
   const setTheme = (t: Theme) => {
     setThemeState(t)
     document.documentElement.classList.toggle('dark', t === 'dark')
-    localStorage.setItem('tnt-theme', t)
+    document.documentElement.style.colorScheme = t
+    localStorage.setItem(THEME_KEY, t)
   }
 
   const toggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')

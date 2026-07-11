@@ -111,6 +111,8 @@ export interface Vehicle {
   branchName?: string
   lastMaintenanceDate?: string
   photoUrl?: string
+  source?: 'AGENCY' | 'FLEETMAN'
+  fleetmanVehicleId?: string
 }
 
 export interface Mission {

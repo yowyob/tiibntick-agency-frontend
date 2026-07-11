@@ -175,6 +175,9 @@ export function mapVehicle(dto: VehicleDto): Vehicle {
     branchId: dto.branchId,
     branchName: dto.branchName,
     lastMaintenanceDate: dto.lastMaintenanceDate,
+    photoUrl: dto.photoUrl,
+    source: dto.source === 'FLEETMAN' ? 'FLEETMAN' : 'AGENCY',
+    fleetmanVehicleId: dto.fleetmanVehicleId,
   };
 }
 

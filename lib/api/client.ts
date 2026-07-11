@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/lib/config';
 import { unwrapApiData } from '@/lib/api/envelope';
 import { formatUserError } from '@/lib/errors';
-import { getAgencyId, getTenantId, getUserId, getAuthToken } from '@/lib/session';
+import { getAgencyId, getTenantId, getUserId, getAuthToken, getUserEmail, getUserRole } from '@/lib/session';
 
 export interface ApiError {
   status: number;
@@ -17,11 +17,16 @@ function buildHeaders(options: RequestInit, tenantId?: string): Record<string, s
     throw toApiError(401, '', 'Session invalide. Veuillez vous reconnecter.');
   }
 
+  const email = getUserEmail();
+  const role = getUserRole();
+
   return {
     'Content-Type': 'application/json',
     'X-Tenant-Id': tid,
     'X-Agency-Id': aid,
     'X-User-Id': uid,
+    ...(email ? { 'X-User-Email': email } : {}),
+    ...(role ? { 'X-User-Role': role } : {}),
     ...getAuthHeaders(),
     ...(options.headers as Record<string, string> | undefined),
   };

@@ -130,6 +130,9 @@ export interface VehicleDto {
   createdAt?: string;
   updatedAt?: string;
   version?: number;
+  photoUrl?: string;
+  source?: string;
+  fleetmanVehicleId?: string;
 }
 
 export interface MissionDto {

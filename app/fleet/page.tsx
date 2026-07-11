@@ -10,6 +10,7 @@ import type { Vehicle, VehicleStatus, VehicleType } from '@/lib/types'
 import CreateVehicleForm from '@/components/forms/CreateVehicleForm'
 import VehicleDetailDrawer from '@/components/VehicleDetailDrawer'
 import VehicleGpsModal from '@/components/fleet/VehicleGpsModal'
+import FleetManConnectButton from '@/components/fleet/FleetManConnectButton'
 import { usePagination } from '@/lib/hooks/usePagination'
 import Pagination from '@/components/ui/Pagination'
 import { fleetService } from '@/lib/services/fleetService'
@@ -27,6 +28,13 @@ function VehicleStatusBadge({ status }: { status: VehicleStatus }) {
   }
   const labels = { AVAILABLE: 'Disponible', IN_USE: 'En service', IN_MAINTENANCE: 'Maintenance', RETIRED: 'Retiré' }
   return <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${map[status]}`}>{labels[status]}</span>
+}
+
+function VehicleSourceBadge({ source }: { source?: string }) {
+  if (source === 'FLEETMAN') {
+    return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">FleetMan</span>
+  }
+  return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-700">Agency</span>
 }
 
 const TYPE_LABELS: Record<VehicleType, string> = {
@@ -170,18 +178,21 @@ export default function FleetPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Flotte</h1>
           <p className="text-sm text-gray-500 mt-0.5">{vehicles.length} véhicules au total</p>
         </div>
-        <button
-          onClick={() => setFormOpen(true)}
-          className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          <Plus size={15} />
-          Ajouter un véhicule
-        </button>
+        <div className="flex items-start gap-2">
+          <FleetManConnectButton onSynced={() => refetch()} />
+          <button
+            onClick={() => setFormOpen(true)}
+            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={15} />
+            Ajouter un véhicule
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -254,7 +265,10 @@ export default function FleetPage() {
                       <input type="file" accept="image/*" className="hidden"
                         onChange={e => { const f = e.target.files?.[0]; if (f) setVehiclePhotoMap(p => ({ ...p, [v.id]: URL.createObjectURL(f) })) }} />
                     </label>
-                    <p className="text-sm font-semibold text-gray-900 font-mono">{v.registrationNumber}</p>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 font-mono">{v.registrationNumber}</p>
+                      <div className="mt-0.5"><VehicleSourceBadge source={v.source} /></div>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3.5">

@@ -10,7 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['var(--font-inter)', 'system-ui', '-apple-system', 'sans-serif'],
+        landing: ['var(--font-source-sans)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-outfit)', 'system-ui', 'sans-serif'],
       },
       colors: {
         brand: {

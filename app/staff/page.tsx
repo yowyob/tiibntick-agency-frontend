@@ -204,7 +204,7 @@ export default function StaffPage() {
         <YowyobLaunchCard
           app="HRM"
           title="Gestion du Personnel (YowYob HRM)"
-          description="Paie CNPS, contrats de travail, congés, organigramme — vue complète RH."
+          description="Centralisez les dossiers employés, contrats, congés, absences, paie et CNPS de toute l’agence dans une gestion RH complète."
           accent="emerald"
         />
       </div>

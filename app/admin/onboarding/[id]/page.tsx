@@ -121,7 +121,13 @@ export default function AdminOnboardingDetailPage() {
           <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">Documents KYC</h2>
           <div className="space-y-2">
             {docs.map(d => (
-              <KycDocumentRow key={d.label} label={d.label} mediaKey={d.key} />
+              <KycDocumentRow
+                key={d.label}
+                label={d.label}
+                mediaKey={d.key}
+                agencyId={detail.summary.agencyId}
+                tenantId={detail.summary.tenantId}
+              />
             ))}
           </div>
         </section>
@@ -168,9 +174,21 @@ export default function AdminOnboardingDetailPage() {
   )
 }
 
-function KycDocumentRow({ label, mediaKey }: { label: string; mediaKey?: string }) {
+function KycDocumentRow({
+  label,
+  mediaKey,
+  agencyId,
+  tenantId,
+}: {
+  label: string
+  mediaKey?: string
+  agencyId: string
+  tenantId: string
+}) {
   const [loading, setLoading] = useState(false)
+  const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState('')
+  const [verifyResult, setVerifyResult] = useState<string>('')
 
   const openDocument = async () => {
     if (!mediaKey) return
@@ -190,28 +208,82 @@ function KycDocumentRow({ label, mediaKey }: { label: string; mediaKey?: string 
     }
   }
 
+  const analyzeDocument = async () => {
+    if (!mediaKey) return
+    setError('')
+    setVerifyResult('')
+    setVerifying(true)
+    try {
+      let file: File
+      if (mediaKey.startsWith('http')) {
+        const res = await fetch(mediaKey)
+        if (!res.ok) throw new Error('Téléchargement du document impossible')
+        const blob = await res.blob()
+        file = new File([blob], `${label}.bin`, { type: blob.type || 'application/octet-stream' })
+      } else {
+        const { url } = await mediaService.getDownloadUrl(mediaKey)
+        const res = await fetch(url)
+        if (!res.ok) throw new Error('Téléchargement du document impossible')
+        const blob = await res.blob()
+        file = new File([blob], `${label}.bin`, { type: blob.type || 'application/octet-stream' })
+      }
+      const data = await onboardingAdminService.verifyDocument(agencyId, file, tenantId)
+      setVerifyResult(summarizeVerifyResult(data))
+    } catch (err) {
+      setError(formatUserError(err, 'Analyse KYC impossible.'))
+    } finally {
+      setVerifying(false)
+    }
+  }
+
   return (
     <div className="py-2 border-b border-slate-800 last:border-0">
       <div className="flex items-center gap-3 text-sm">
         <FileText size={16} className="text-orange-500 flex-shrink-0" />
         <span className="flex-1">{label}</span>
         {mediaKey ? (
-          <button
-            type="button"
-            onClick={openDocument}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-orange-400 hover:text-orange-300 disabled:opacity-50"
-          >
-            {loading
-              ? <Loader2 size={14} className="animate-spin" />
-              : <ExternalLink size={14} />}
-            Voir
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={analyzeDocument}
+              disabled={verifying || loading}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 disabled:opacity-50"
+            >
+              {verifying ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              Analyser
+            </button>
+            <button
+              type="button"
+              onClick={openDocument}
+              disabled={loading || verifying}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-orange-400 hover:text-orange-300 disabled:opacity-50"
+            >
+              {loading
+                ? <Loader2 size={14} className="animate-spin" />
+                : <ExternalLink size={14} />}
+              Voir
+            </button>
+          </div>
         ) : (
           <span className="text-slate-500 text-xs">Non fourni</span>
         )}
       </div>
+      {verifyResult && <p className="text-xs text-emerald-400/90 mt-1 pl-7">{verifyResult}</p>}
       {error && <p className="text-xs text-red-400 mt-1 pl-7">{error}</p>}
     </div>
   )
+}
+
+function summarizeVerifyResult(data: unknown): string {
+  if (data == null) return 'Analyse terminée.'
+  if (typeof data === 'string') return data
+  if (typeof data !== 'object') return 'Analyse terminée.'
+  const obj = data as Record<string, unknown>
+  const status = obj.status ?? obj.verificationStatus ?? obj.result ?? obj.valid
+  const message = obj.message ?? obj.summary ?? obj.reason
+  const parts = [
+    status != null ? `Statut : ${String(status)}` : null,
+    message != null ? String(message) : null,
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(' — ') : 'Analyse terminée (réponse Kernel reçue).'
 }

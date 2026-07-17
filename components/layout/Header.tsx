@@ -6,7 +6,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useTheme } from '@/contexts/ThemeContext'
 import { openNotificationStream, subscribeRealtime } from '@/lib/realtime'
-import { getAuthToken } from '@/lib/session'
 import {
   notificationService,
   type AppNotification,
@@ -104,15 +103,12 @@ export default function Header() {
   }, [])
 
   useEffect(() => {
-    const token = getAuthToken()
-    if (!token) return
-
     let cancelled = false
     notificationService.getNotifications()
       .then(items => { if (!cancelled) setNotifs(items) })
       .catch(() => { if (!cancelled) setNotifs([]) })
 
-    const es = openNotificationStream(token, (n) => {
+    const es = openNotificationStream((n) => {
       setNotifs(prev => prependNotif(prev, {
         id: String(n.id ?? crypto.randomUUID()),
         type: (n.type as NotifType) ?? 'info',

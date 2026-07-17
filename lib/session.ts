@@ -18,13 +18,11 @@ export function getUserId(): string {
 }
 
 export function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('tnt-token') ?? localStorage.getItem('tnt-branch-token');
+  return null;
 }
 
 export function getSharedSessionToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('tnt-shared-session');
+  return null;
 }
 
 export function getUserEmail(): string {
@@ -34,7 +32,7 @@ export function getUserEmail(): string {
 export function getUserRole(): string {
   const role = ls('tnt-user-role', 'tnt-branch-user-role');
   if (role) return role;
-  if (typeof window !== 'undefined' && localStorage.getItem('tnt-branch-token')) {
+  if (typeof window !== 'undefined' && localStorage.getItem('tnt-branch-session-active') === 'true') {
     return 'BRANCH_MANAGER';
   }
   return '';

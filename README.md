@@ -8,15 +8,16 @@ Interface web de gestion pour les agences de livraison. Ce module est un sous-sy
 
 TiiBnTick Agency permet a une agence de livraison de piloter l'ensemble de ses operations depuis un tableau de bord centralisé : suivi des missions, gestion du personnel (livreurs, contrats, freelancers), gestion de la flotte de véhicules, supervision des hubs relais et facturation.
 
-L'agence de démonstration utilisée dans les données fictives est **Rapid Express Douala** (Douala, Cameroun — devise XAF).
-
-> **Note** : Le backend n'est pas encore connecté. Toutes les données affichées sont fictives et définies dans `lib/mock-data.ts`.
+Le frontend contient son propre BFF sous `/api/agency/*`. Les Route Handlers
+appellent directement TiiBnTick Core et les services satellites. Le service
+Java historique `backend/tnt-agency` n'est plus requis à l'exécution, mais il
+reste conservé dans le dépôt comme solution de retour arrière.
 
 ---
 
 ## Prérequis
 
-- Node.js >= 18
+- Node.js >= 20
 - npm >= 9
 
 ---
@@ -37,18 +38,8 @@ L'application est accessible sur [http://localhost:3000](http://localhost:3000).
 npm run build   # Build de production
 npm run start   # Démarrer le build de production
 npm run lint    # Vérification ESLint
+npm test        # Tests unitaires du BFF
 ```
-
----
-
-## Identifiants de démonstration
-
-Page `/login` :
-
-| Champ | Valeur |
-|---|---|
-| Email | admin@rapidexpress.cm |
-| Mot de passe | demo1234 |
 
 ---
 
@@ -89,8 +80,9 @@ frontend/
 │   └── ThemeContext.tsx         # Fournisseur dark/light mode (clé localStorage : tnt-theme)
 │
 ├── lib/
-│   ├── types.ts                # Types TypeScript (diagramme de classes)
-│   └── mock-data.ts            # Données fictives de l'agence
+│   ├── server/                 # BFF, auth JWT, FleetMan et temps réel
+│   ├── services/               # Clients métier du navigateur
+│   └── types.ts                # Types TypeScript
 │
 ├── tailwind.config.ts
 ├── next.config.ts
@@ -136,7 +128,7 @@ frontend/
 
 | Technologie | Version |
 |---|---|
-| Next.js | 15.3.1 (App Router, Turbopack) |
+| Next.js | 15.5.20 (App Router, Turbopack) |
 | React | 19.0.0 |
 | TypeScript | 5.x |
 | Tailwind CSS | 3.4.x |
@@ -145,6 +137,27 @@ frontend/
 
 ---
 
-## Backend
+## BFF intégré et déploiement
 
-Le backend n'est pas encore intégré. L'architecture cible est documentée dans `g:\TiiBnTick Agency\BACKEND_SPEC.md` (Java 21, Spring Boot 3.3 WebFlux, PostgreSQL 16, Redis, Kafka, auth déléguée à YowAuth0).
+Flux principal :
+
+```text
+Navigateur → /api/agency/* (Next.js) → TiiBnTick Core / Agency Registry
+```
+
+Les secrets Core, FleetMan et JWT doivent être injectés dans le processus
+Next.js et ne doivent jamais porter le préfixe `NEXT_PUBLIC_`. La liste
+exhaustive et commentée se trouve dans `.env.example`.
+
+Variables serveur obligatoires en production :
+
+- `TNT_CORE_BASE_URL`, `TNT_AGENCY_CLIENT_ID`, `TNT_AGENCY_API_KEY`
+- `JWT_ISSUER_URI`, `JWT_JWK_SET_URI`
+- `TNT_SEARCH_BASE_URL`
+- `TNT_FLEETMAN_API_BASE_URL`, `TNT_FLEETMAN_UI_BASE_URL`
+- `TNT_FLEETMAN_TOKEN_ENCRYPTION_KEY` : Base64 de 32 octets
+- `TNT_CORE_WS_URL` pour le pont SSE → WebSocket Core
+
+L'ingress doit désactiver le buffering sur `/api/agency/realtime/*` et autoriser
+les connexions longues pour les flux SSE. Les cookies d'authentification sont
+`HttpOnly`, `Secure` en production et `SameSite=Lax`.

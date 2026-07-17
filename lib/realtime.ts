@@ -1,6 +1,7 @@
 import { API_BASE_URL, PUBLIC_TENANT_ID, USE_CORE_REALTIME } from '@/lib/config';
 import { subscribeCorePresence } from '@/lib/coreRealtime';
-import { getTenantId } from '@/lib/session';
+import { getAgencyId, getTenantId } from '@/lib/session';
+import { unwrapApiData } from '@/lib/api/envelope';
 
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
 
@@ -115,16 +116,44 @@ export function openMissionStream(
 }
 
 export function openNotificationStream(
-  token: string,
   onNotif: (n: Record<string, unknown>) => void,
-): EventSource {
+): { close: () => void } {
   const tenantId = getTenantId();
-  const url = `${API_BASE_URL}/notifications/stream?token=${encodeURIComponent(token)}&tenantId=${encodeURIComponent(tenantId)}`;
-  const es = new EventSource(url);
-  es.onmessage = (e) => {
+  const agencyId = getAgencyId();
+  const seen = new Set<string>();
+  let closed = false;
+  let initialized = false;
+
+  const poll = async () => {
+    if (closed || !tenantId || !agencyId) return;
     try {
-      onNotif(JSON.parse(e.data));
+      const response = await fetch(
+        `${API_BASE_URL}/agencies/${encodeURIComponent(agencyId)}/notifications?limit=20`,
+        {
+          headers: {
+            'X-Tenant-Id': tenantId,
+          },
+          cache: 'no-store',
+        },
+      );
+      if (!response.ok) return;
+      const notifications = unwrapApiData<Record<string, unknown>[]>(await response.json());
+      for (const notification of [...notifications].reverse()) {
+        const id = String(notification.id ?? '');
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        if (initialized) onNotif(notification);
+      }
+      initialized = true;
     } catch { /* ignore */ }
   };
-  return es;
+
+  void poll();
+  const timer = window.setInterval(() => void poll(), 15_000);
+  return {
+    close: () => {
+      closed = true;
+      window.clearInterval(timer);
+    },
+  };
 }

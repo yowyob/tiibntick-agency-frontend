@@ -75,14 +75,12 @@ export const branchPortalService = {
 
 export function getBranchSessionHeaders(): Record<string, string> {
   if (typeof window === 'undefined') return {};
-  const token = localStorage.getItem('tnt-branch-token') ?? '';
   const tenantId = localStorage.getItem('tnt-branch-tenant-id') ?? '';
   const agencyId = localStorage.getItem('tnt-branch-agency-id') ?? '';
   return {
     'Content-Type': 'application/json',
     'X-Tenant-Id': tenantId,
     'X-Agency-Id': agencyId,
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 

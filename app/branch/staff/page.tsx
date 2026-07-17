@@ -76,7 +76,7 @@ export default function BranchStaffPage() {
       <YowyobLaunchCard
         app="HRM"
         title="Gestion RH antenne (YowYob HRM)"
-        description="Contrats, paie et dossiers employés de votre antenne uniquement."
+        description="Gérez les dossiers, contrats, congés, absences et la paie uniquement pour le personnel rattaché à votre antenne."
         accent="emerald"
       />
 

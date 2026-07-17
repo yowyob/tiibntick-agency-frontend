@@ -2,7 +2,7 @@ import { formatUserError } from '@/lib/errors';
 import { unwrapApiData } from '@/lib/api/envelope';
 import { API_BASE_URL } from '@/lib/config';
 import { yowAuthService, challengeToTokens, isMfaRequiredError, type AuthChallenge } from '@/lib/yowauthService';
-import { claimRoles, claimString, hasRole, parseJwtPayload } from '@/lib/jwt';
+import { claimString, parseJwtPayload } from '@/lib/jwt';
 import {
   livreurFetch,
   saveLivreurSession,
@@ -33,8 +33,8 @@ export const livreurAuthService = {
   async completeLogin(challenge: AuthChallenge, email: string): Promise<LivreurSession> {
     const tokens = challengeToTokens(challenge, email);
     const claims = parseJwtPayload(tokens.accessToken);
-    const roles = claimRoles(claims);
-    if (!hasRole(roles, 'PERMANENT_DELIVERER') && !hasRole(roles, 'DELIVERER')) {
+    const role = tokens.role.replace(/^ROLE_/, '');
+    if (role !== 'PERMANENT_DELIVERER' && role !== 'DELIVERER') {
       throw new Error('Ce compte n\'a pas les droits livreur.');
     }
 
@@ -42,7 +42,6 @@ export const livreurAuthService = {
 
     const res = await fetch(`${API_BASE_URL}/auth/livreur/session`, {
       headers: {
-        Authorization: `Bearer ${tokens.accessToken}`,
         'X-Tenant-Id': tokens.tenantId,
         'X-User-Id': userId,
         'X-Agency-Id': '',
@@ -80,11 +79,15 @@ export const livreurAuthService = {
 
   logout() {
     clearLivreurSession();
+    void fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      keepalive: true,
+    });
     window.location.href = '/livreur/login';
   },
 
   isAuthenticated(): boolean {
-    return !!getLivreurSession()?.token;
+    return getLivreurSession() !== null;
   },
 
   getCurrentDelivererId(): string | null {

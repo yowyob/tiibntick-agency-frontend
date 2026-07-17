@@ -1,6 +1,5 @@
 import { yowAuthService, challengeToTokens, isMfaRequiredError, type AuthChallenge } from '@/lib/yowauthService';
 import { API_BASE_URL } from '@/lib/config';
-import { claimRoles, hasRole, parseJwtPayload } from '@/lib/jwt';
 import { formatUserError } from '@/lib/errors';
 import { unwrapApiData } from '@/lib/api/envelope';
 import type { Branch } from '@/lib/types';
@@ -36,14 +35,13 @@ export const branchAuthService = {
 
   async completeLogin(challenge: AuthChallenge, email: string): Promise<Branch> {
     const tokens = challengeToTokens(challenge, email);
-    const roles = claimRoles(parseJwtPayload(tokens.accessToken));
-    if (!hasRole(roles, 'BRANCH_MANAGER') && !hasRole(roles, 'AGENCY_MANAGER')) {
+    const role = tokens.role.replace(/^ROLE_/, '');
+    if (role !== 'BRANCH_MANAGER' && role !== 'AGENCY_MANAGER') {
       throw new Error('Ce compte n\'a pas les droits responsable d\'antenne.');
     }
 
     const res = await fetch(`${API_BASE_URL}/auth/branch/session`, {
       headers: {
-        Authorization: `Bearer ${tokens.accessToken}`,
         'X-Tenant-Id': tokens.tenantId,
         'X-User-Id': tokens.userId,
         'X-User-Email': email,
@@ -68,7 +66,8 @@ export const branchAuthService = {
       managerEmail: string;
     }>(await res.json());
 
-    localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.setItem('tnt-branch-session-active', 'true');
     localStorage.setItem(TENANT_KEY, data.tenantId);
     localStorage.setItem(AGENCY_KEY, data.agencyId);
     localStorage.setItem(BRANCH_ID_KEY, data.branchId);
@@ -78,9 +77,7 @@ export const branchAuthService = {
     localStorage.setItem(EMAIL_KEY, data.managerEmail || email);
     localStorage.setItem('tnt-branch-user-id', tokens.userId);
     localStorage.setItem('tnt-branch-user-role', 'BRANCH_MANAGER');
-    if (tokens.sharedSessionToken) {
-      localStorage.setItem('tnt-shared-session', tokens.sharedSessionToken);
-    }
+    localStorage.removeItem('tnt-shared-session');
 
     return {
       id: data.branchId,
@@ -102,6 +99,7 @@ export const branchAuthService = {
 
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('tnt-branch-session-active');
     localStorage.removeItem(TENANT_KEY);
     localStorage.removeItem(AGENCY_KEY);
     localStorage.removeItem(BRANCH_ID_KEY);
@@ -112,18 +110,21 @@ export const branchAuthService = {
     localStorage.removeItem('tnt-branch-user-id');
     localStorage.removeItem('tnt-branch-user-role');
     localStorage.removeItem('tnt-shared-session');
+    void fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      keepalive: true,
+    });
     window.location.href = '/branch/login';
   },
 
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem('tnt-branch-session-active') === 'true';
   },
 
   getSession(): BranchSession | null {
     if (typeof window === 'undefined') return null;
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return null;
+    if (localStorage.getItem('tnt-branch-session-active') !== 'true') return null;
     return {
       branchId: localStorage.getItem(BRANCH_ID_KEY) ?? '',
       managerId: localStorage.getItem(MANAGER_ID_KEY) ?? '',

@@ -46,7 +46,7 @@ async function agencyAuthPost(path: string, body: unknown): Promise<AuthOutcomeR
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error('Impossible de joindre le serveur Agency. Vérifiez que tnt-agency est démarré.');
+    throw new Error('Impossible de joindre le BFF Agency intégré au frontend.');
   }
 
   const payload = await res.json().catch(() => ({}));

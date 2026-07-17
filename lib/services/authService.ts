@@ -1,6 +1,5 @@
 import { API_BASE_URL } from '@/lib/config';
 import { unwrapApiData } from '@/lib/api/envelope';
-import { setAuthCookie, clearAuthCookie } from '@/lib/auth-session';
 import { formatUserError } from '@/lib/errors';
 import { claimRoles, claimString, hasRole, isPlatformAdmin, parseJwtPayload } from '@/lib/jwt';
 import { yowAuthService, type AuthChallenge } from '@/lib/yowauthService';
@@ -38,7 +37,8 @@ interface SignupRequest {
 }
 
 function persistSession(result: AuthSession): void {
-  localStorage.setItem('tnt-token', result.accessToken);
+  localStorage.removeItem('tnt-token');
+  localStorage.setItem('tnt-session-active', 'true');
   localStorage.setItem('tnt-tenant-id', result.tenantId);
   if (result.agencyId) {
     localStorage.setItem('tnt-agency-id', result.agencyId);
@@ -48,14 +48,9 @@ function persistSession(result: AuthSession): void {
   localStorage.setItem('tnt-user-id', result.userId);
   localStorage.setItem('tnt-user-email', result.email);
   localStorage.setItem('tnt-user-role', result.role);
-  if (result.sharedSessionToken) {
-    localStorage.setItem('tnt-shared-session', result.sharedSessionToken);
-  } else {
-    localStorage.removeItem('tnt-shared-session');
-  }
+  localStorage.removeItem('tnt-shared-session');
   localStorage.setItem('tnt-agency-status', result.agencyStatus);
   localStorage.setItem('tnt-agency-active', String(result.agencyActive));
-  setAuthCookie(result.accessToken);
 }
 
 function sessionFromToken(tokens: {
@@ -90,7 +85,6 @@ function sessionFromToken(tokens: {
 async function enrichFromAgency(session: AuthSession): Promise<AuthSession> {
   const res = await fetch(`${API_BASE_URL}/auth/session`, {
     headers: {
-      Authorization: `Bearer ${session.accessToken}`,
       'X-Tenant-Id': session.tenantId,
       'X-User-Id': session.userId,
       'X-Agency-Id': session.agencyId ?? '',
@@ -164,8 +158,7 @@ export const authService = {
 
   async adminConfirmMfa(mfaToken: string, code: string, email: string): Promise<AuthSession> {
     const session = await authService.confirmMfa(mfaToken, code, email);
-    const roles = claimRoles(parseJwtPayload(session.accessToken));
-    if (!isPlatformAdmin(roles) && session.role !== 'TNT_ADMIN') {
+    if (!isPlatformAdmin([session.role]) && session.role !== 'TNT_ADMIN') {
       throw new Error('Ce compte n\'a pas les droits administrateur TiiBnTick.');
     }
     const adminSession: AuthSession = {
@@ -186,8 +179,7 @@ export const authService = {
       if (err instanceof Error && err.message === 'MFA_REQUIRED') throw err;
       throw err;
     }
-    const roles = claimRoles(parseJwtPayload(session.accessToken));
-    if (!isPlatformAdmin(roles) && session.role !== 'TNT_ADMIN') {
+    if (!isPlatformAdmin([session.role]) && session.role !== 'TNT_ADMIN') {
       throw new Error('Ce compte n\'a pas les droits administrateur TiiBnTick.');
     }
     const adminSession: AuthSession = {
@@ -202,25 +194,39 @@ export const authService = {
 
   async refreshSession(): Promise<AuthSession | null> {
     if (typeof window === 'undefined') return null;
-    const token = localStorage.getItem('tnt-token');
-    const tenantId = localStorage.getItem('tnt-tenant-id');
-    const userId = localStorage.getItem('tnt-user-id');
-    if (!token || !tenantId || !userId) return null;
-
-    let session = sessionFromToken({
-      accessToken: token,
-      tenantId,
-      userId,
-      email: localStorage.getItem('tnt-user-email') ?? '',
-      role: localStorage.getItem('tnt-user-role') ?? '',
+    if (localStorage.getItem('tnt-session-active') !== 'true') return null;
+    const response = await fetch(`${API_BASE_URL}/auth/session`, {
+      credentials: 'same-origin',
+      cache: 'no-store',
     });
-    session = await enrichFromAgency(session);
-    if (session.accessToken) persistSession(session);
+    if (!response.ok) return null;
+    const data = unwrapApiData<{
+      tenantId: string;
+      agencyId?: string | null;
+      userId: string;
+      email: string;
+      role: string;
+      agencyStatus: string;
+      agencyActive: boolean;
+    }>(await response.json());
+    const session: AuthSession = {
+      accessToken: '',
+      tenantId: data.tenantId,
+      agencyId: data.agencyId ?? null,
+      userId: data.userId,
+      email: data.email,
+      displayName: data.email,
+      role: data.role,
+      agencyStatus: data.agencyStatus,
+      agencyActive: data.agencyActive,
+    };
+    persistSession(session);
     return session;
   },
 
   logout(): void {
     localStorage.removeItem('tnt-token');
+    localStorage.removeItem('tnt-session-active');
     localStorage.removeItem('tnt-tenant-id');
     localStorage.removeItem('tnt-agency-id');
     localStorage.removeItem('tnt-user-id');
@@ -229,7 +235,10 @@ export const authService = {
     localStorage.removeItem('tnt-shared-session');
     localStorage.removeItem('tnt-agency-status');
     localStorage.removeItem('tnt-agency-active');
-    clearAuthCookie();
+    void fetch(`${API_BASE_URL}/auth/logout`, {
+      method: 'POST',
+      keepalive: true,
+    });
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
     }
@@ -237,7 +246,7 @@ export const authService = {
 
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('tnt-token');
+    return localStorage.getItem('tnt-session-active') === 'true';
   },
 
   isAgencyActive(): boolean {
@@ -257,10 +266,7 @@ export const authService = {
 
   isAdmin(): boolean {
     const role = this.getRole();
-    if (role === 'TNT_ADMIN') return true;
-    const token = typeof window !== 'undefined' ? localStorage.getItem('tnt-token') : null;
-    if (!token) return false;
-    return isPlatformAdmin(claimRoles(parseJwtPayload(token)));
+    return role === 'TNT_ADMIN' || isPlatformAdmin([role]);
   },
 };
 

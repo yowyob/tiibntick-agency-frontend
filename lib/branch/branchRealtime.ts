@@ -1,4 +1,6 @@
 import { API_BASE_URL } from '@/lib/config';
+import { unwrapApiData } from '@/lib/api/envelope';
+import { subscribeCorePresence } from '@/lib/coreRealtime';
 
 const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
 
@@ -62,8 +64,23 @@ function ensureBranchWebSocket(): WebSocket | null {
 
 export function subscribeBranchRealtime(handler: BranchRealtimeHandler): () => void {
   branchHandlers.add(handler);
-  ensureBranchWebSocket();
+  const unsubscribePresence = subscribeCorePresence(update => {
+    handler({
+      channel: 'tracking',
+      type: 'DELIVERER_LOCATION',
+      title: 'Position livreur',
+      body: 'Mise à jour GPS (Core)',
+      data: {
+        delivererId: update.userId,
+        latitude: update.latitude,
+        longitude: update.longitude,
+        status: update.status,
+        activeMissionId: update.activeMissionId,
+      },
+    });
+  });
   return () => {
+    unsubscribePresence();
     branchHandlers.delete(handler);
     if (branchHandlers.size === 0 && branchSocket) {
       branchSocket.close();
@@ -74,19 +91,46 @@ export function subscribeBranchRealtime(handler: BranchRealtimeHandler): () => v
 }
 
 export function openBranchNotificationStream(
-  token: string,
   onNotif: (n: Record<string, unknown>) => void,
-): EventSource | null {
+): { close: () => void } | null {
   if (typeof window === 'undefined') return null;
   const tenantId = getBranchTenantId();
-  if (!tenantId) return null;
+  const agencyId = localStorage.getItem('tnt-branch-agency-id');
+  if (!tenantId || !agencyId) return null;
 
-  const url = `${API_BASE_URL}/notifications/stream?token=${encodeURIComponent(token)}&tenantId=${encodeURIComponent(tenantId)}`;
-  const es = new EventSource(url);
-  es.onmessage = (e) => {
+  const seen = new Set<string>();
+  let initialized = false;
+  let closed = false;
+  const poll = async () => {
+    if (closed) return;
     try {
-      onNotif(JSON.parse(e.data));
+      const response = await fetch(
+        `${API_BASE_URL}/agencies/${encodeURIComponent(agencyId)}/notifications?limit=20`,
+        {
+          headers: {
+            'X-Tenant-Id': tenantId,
+          },
+          cache: 'no-store',
+        },
+      );
+      if (!response.ok) return;
+      const notifications = unwrapApiData<Record<string, unknown>[]>(await response.json());
+      for (const notification of [...notifications].reverse()) {
+        const id = String(notification.id ?? '');
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        if (initialized) onNotif(notification);
+      }
+      initialized = true;
     } catch { /* ignore */ }
   };
-  return es;
+
+  void poll();
+  const timer = window.setInterval(() => void poll(), 15_000);
+  return {
+    close: () => {
+      closed = true;
+      window.clearInterval(timer);
+    },
+  };
 }

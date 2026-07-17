@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api/client';
+import { mediaService } from '@/lib/services/mediaService';
 
 export interface OnboardingListItem {
   applicationId: string;
@@ -50,5 +51,10 @@ export const onboardingAdminService = {
 
   async reject(agencyId: string, reason: string): Promise<void> {
     await apiClient.patch(`/admin/onboarding/requests/${agencyId}/reject`, { reason });
+  },
+
+  /** OCR / validity check via Core → Kernel (multipart file). */
+  async verifyDocument(agencyId: string, file: File, tenantId?: string): Promise<unknown> {
+    return mediaService.verifyDocument(file, tenantId);
   },
 };

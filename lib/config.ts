@@ -1,46 +1,23 @@
-// Variables d'environnement — source de vérité : backend/.env (section NEXT_PUBLIC_*)
-
-/**
- * Auth IAM — Kernel RT-ComOps (PAS tnt-trust).
- * tnt-trust (:8090) = blockchain/preuves logistiques, service séparé.
- */
-export const KERNEL_AUTH_BASE_URL =
-  process.env.NEXT_PUBLIC_KERNEL_AUTH_BASE_URL
-  ?? process.env.NEXT_PUBLIC_YOWAUTH_BASE_URL
-  ?? 'https://kernel-core.yowyob.com';
-
-/** @deprecated Utiliser KERNEL_AUTH_BASE_URL — alias rétrocompat */
-export const YOWAUTH_BASE_URL = KERNEL_AUTH_BASE_URL;
-
-/** ClientApplication Kernel (requis pour /api/auth/*) */
-export const KERNEL_CLIENT_ID =
-  process.env.NEXT_PUBLIC_KERNEL_CLIENT_ID ?? '';
-
-export const KERNEL_API_KEY =
-  process.env.NEXT_PUBLIC_KERNEL_API_KEY ?? '';
+// Variables publiques uniquement. Les URLs et secrets Core restent dans les
+// Route Handlers Next.js (lib/server) et ne sont jamais inclus dans le bundle.
 
 /** tnt-trust — preuves blockchain (lecture seule côté frontend, via agency API) */
 export const TNT_TRUST_BASE_URL =
   process.env.NEXT_PUBLIC_TNT_TRUST_BASE_URL ?? 'http://localhost:8090';
 
-/** Base publique backend (sans /v1) — ex. http://localhost:8081/agency */
+/** Base publique du BFF Next.js (même origine par défaut). */
 export const AGENCY_PUBLIC_BASE_URL =
-  process.env.NEXT_PUBLIC_AGENCY_PUBLIC_BASE_URL ?? 'http://localhost:8081/agency';
-
-/** TiiBnTick Core WebSocket base — ex. wss://tiibntick-core.yowyob.com/ws */
-export const CORE_WS_URL =
-  process.env.NEXT_PUBLIC_CORE_WS_URL ?? 'wss://tiibntick-core.yowyob.com/ws';
+  process.env.NEXT_PUBLIC_AGENCY_PUBLIC_BASE_URL ?? '/api/agency';
 
 /**
- * When true, live GPS / presence uses Core STOMP ({@link CORE_WS_URL}/realtime).
- * Default false: Agency WS relay (Kafka projection) for backward compatibility.
+ * Active le flux de présence Core relayé par le BFF Next.js.
  */
 export const USE_CORE_REALTIME =
-  process.env.NEXT_PUBLIC_USE_CORE_REALTIME === 'true';
+  process.env.NEXT_PUBLIC_USE_CORE_REALTIME !== 'false';
 
-/** Base URL API incluant le prefix `/agency/v1` */
+/** Base URL de l'API consommée par le navigateur. */
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? `${AGENCY_PUBLIC_BASE_URL}/v1`;
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? AGENCY_PUBLIC_BASE_URL;
 
 /** Carte Leaflet */
 export const MAP_TILE_URL =

@@ -43,10 +43,7 @@ export default function BranchNotificationBell() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('tnt-branch-token');
-    if (!token) return;
-
-    const es = openBranchNotificationStream(token, (n) => {
+    const es = openBranchNotificationStream((n) => {
       const item: BranchNotif = {
         id: String(n.id ?? crypto.randomUUID()),
         type: 'info',

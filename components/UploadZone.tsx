@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, FileText, X, Loader2 } from 'lucide-react'
-import { mediaService } from '@/lib/services/mediaService'
+import { Upload, FileText, X, Loader2, CheckCircle2 } from 'lucide-react'
+import { mediaService, shouldVerifyDocument } from '@/lib/services/mediaService'
 import { formatUserError } from '@/lib/errors'
 
 interface Props {
@@ -12,6 +12,8 @@ interface Props {
   category?: string
   /** When set, uploaded proofs are scoped to this entity (mission, contract, …). */
   entityId?: string
+  /** Force OCR verify before upload. Defaults from category. */
+  verify?: boolean
   onUpload?: (url: string) => void
   onError?: (message: string) => void
 }
@@ -22,18 +24,22 @@ export default function UploadZone({
   accept = 'image/*,.pdf',
   category = 'general',
   entityId,
+  verify,
   onUpload,
   onError,
 }: Props) {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null)
+  const [verified, setVerified] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const doVerify = verify ?? shouldVerifyDocument(category)
 
   const apply = async (f: File) => {
     setError(null)
+    setVerified(false)
     setFile(f)
     if (f.type.startsWith('image/')) {
       if (preview) URL.revokeObjectURL(preview)
@@ -43,16 +49,19 @@ export default function UploadZone({
     }
     setUploading(true)
     try {
+      // mediaService.upload* runs OCR when category is document-like
       const url = entityId
         ? await mediaService.uploadDocument(entityId, category, f)
-        : await mediaService.uploadFile(f, category)
+        : await mediaService.uploadFile(f, doVerify ? (category || 'identity') : category)
       setUploadedUrl(url)
+      if (doVerify || shouldVerifyDocument(category)) setVerified(true)
       onUpload?.(url)
     } catch (e) {
       const message = formatUserError(e, 'Impossible d’enregistrer le fichier. Réessayez.')
       setError(message)
       onError?.(message)
       setFile(null)
+      setVerified(false)
       if (preview) URL.revokeObjectURL(preview)
       setPreview(null)
       setUploadedUrl(null)
@@ -67,6 +76,7 @@ export default function UploadZone({
     setFile(null)
     setPreview(null)
     setUploadedUrl(null)
+    setVerified(false)
     setError(null)
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -91,16 +101,20 @@ export default function UploadZone({
             <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
             <p className="text-xs text-gray-400">
               {(file.size / 1024).toFixed(0)} Ko · {file.type.includes('pdf') ? 'PDF' : 'Image'}
+              {verified ? ' · Vérifié' : ''}
               {uploadedUrl ? ' · Enregistré' : ''}
             </p>
           </div>
           {uploading ? (
             <Loader2 size={14} className="text-orange-500 animate-spin flex-shrink-0" />
           ) : (
-            <button type="button" onClick={remove}
-              className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
-              <X size={14} />
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {verified ? <CheckCircle2 size={14} className="text-emerald-500" /> : null}
+              <button type="button" onClick={remove}
+                className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={14} />
+              </button>
+            </div>
           )}
         </div>
       ) : (
@@ -118,11 +132,11 @@ export default function UploadZone({
             <p className="text-sm text-gray-600">
               Glisser ou <span className="text-orange-500 font-medium">choisir un fichier</span>
             </p>
-            {hint && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
+            {hint ? <p className="text-xs text-gray-400 mt-0.5">{hint}</p> : null}
           </div>
         </button>
       )}
-      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+      {error ? <p className="text-xs text-red-500 mt-1.5">{error}</p> : null}
     </div>
   )
 }

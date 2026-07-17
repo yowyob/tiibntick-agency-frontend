@@ -1,10 +1,10 @@
 import { formatUserError } from '@/lib/errors';
 import { API_BASE_URL } from '@/lib/config';
 import { unwrapApiData } from '@/lib/api/envelope';
-import { claimString, parseJwtPayload } from '@/lib/jwt';
 
 const SESSION_KEYS = {
   token: 'tnt-livreur-token',
+  active: 'tnt-livreur-session-active',
   id: 'tnt-livreur-id',
   name: 'tnt-livreur-name',
   tenantId: 'tnt-livreur-tenant-id',
@@ -23,23 +23,28 @@ export interface LivreurSession {
 
 export function getLivreurSession(): LivreurSession | null {
   if (typeof window === 'undefined') return null;
-  const token = localStorage.getItem(SESSION_KEYS.token);
   const delivererId = localStorage.getItem(SESSION_KEYS.id);
   const tenantId = localStorage.getItem(SESSION_KEYS.tenantId);
   const agencyId = localStorage.getItem(SESSION_KEYS.agencyId);
-  if (!token || !delivererId || !tenantId || !agencyId) return null;
+  if (
+    localStorage.getItem(SESSION_KEYS.active) !== 'true' ||
+    !delivererId ||
+    !tenantId ||
+    !agencyId
+  ) return null;
   return {
-    token,
+    token: '',
     delivererId,
     delivererName: localStorage.getItem(SESSION_KEYS.name) ?? 'Livreur',
     tenantId,
     agencyId,
-    userId: localStorage.getItem(SESSION_KEYS.userId) ?? claimString(parseJwtPayload(token), 'sub', 'userId', 'uid'),
+    userId: localStorage.getItem(SESSION_KEYS.userId) ?? '',
   };
 }
 
 export function saveLivreurSession(s: LivreurSession) {
-  localStorage.setItem(SESSION_KEYS.token, s.token);
+  localStorage.removeItem(SESSION_KEYS.token);
+  localStorage.setItem(SESSION_KEYS.active, 'true');
   localStorage.setItem(SESSION_KEYS.id, s.delivererId);
   localStorage.setItem(SESSION_KEYS.name, s.delivererName);
   localStorage.setItem(SESSION_KEYS.tenantId, s.tenantId);
@@ -58,7 +63,6 @@ export function getLivreurHeaders(extra?: Record<string, string>): Record<string
     'X-Tenant-Id': session?.tenantId ?? '',
     'X-Agency-Id': session?.agencyId ?? '',
     ...(session?.userId ? { 'X-User-Id': session.userId } : {}),
-    ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
     ...extra,
   };
 }
@@ -100,7 +104,6 @@ export async function livreurUpload(
   const res = await fetch(`${API_BASE_URL}/media/upload?category=${encodeURIComponent(category)}`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${session.token}`,
       'X-Tenant-Id': session.tenantId,
       'X-Agency-Id': session.agencyId,
       'X-User-Id': session.userId,

@@ -2,9 +2,15 @@
 
 import { useState } from 'react'
 import { ExternalLink, Loader2, RefreshCw } from 'lucide-react'
-import { getUserEmail } from '@/lib/session'
+import { getUserEmail, getUserRole } from '@/lib/session'
 import { fleetManService } from '@/lib/services/fleetManService'
 import { formatUserError } from '@/lib/errors'
+
+const FLEETMAN_UI_ROLES = new Set([
+  'AGENCY_MANAGER',
+  'OPERATIONS_MANAGER',
+  'TNT_ADMIN',
+])
 
 function openFleetMan(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
@@ -20,6 +26,12 @@ export default function FleetManConnectButton({ onSynced }: { onSynced?: () => v
   const [syncBusy, setSyncBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hint, setHint] = useState<string | null>(null)
+  const role = getUserRole().replace(/^ROLE_/, '').toUpperCase()
+
+  // Pas d’accès FleetMan pour les responsables d’antenne.
+  if (role === 'BRANCH_MANAGER' || (role && !FLEETMAN_UI_ROLES.has(role))) {
+    return null
+  }
 
   const loadStatus = async () => {
     try {
@@ -128,6 +140,10 @@ export default function FleetManConnectButton({ onSynced }: { onSynced?: () => v
           Ouvrir FleetMan
         </button>
       </div>
+      <p className="text-xs text-gray-500 max-w-md text-right leading-relaxed">
+        Suivez vos véhicules, leurs positions, affectations et entretiens dans FleetMan.
+        La synchronisation garde votre flotte Agency à jour sur la plateforme.
+      </p>
       {hint && <p className="text-xs text-emerald-700 max-w-sm text-right">{hint}</p>}
       {error && !showModal && <p className="text-xs text-red-600 max-w-sm text-right">{error}</p>}
 

@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '@/lib/config';
 import { unwrapApiData } from '@/lib/api/envelope';
 import { formatUserError } from '@/lib/errors';
-import { getAgencyId, getTenantId, getUserId, getAuthToken, getUserEmail, getUserRole } from '@/lib/session';
+import { getAgencyId, getTenantId, getUserId, getUserEmail, getUserRole } from '@/lib/session';
 
 export interface ApiError {
   status: number;
@@ -62,6 +62,7 @@ async function request<T>(
   if (res.status === 401) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('tnt-token');
+      localStorage.removeItem('tnt-session-active');
       window.location.href = '/login';
     }
     throw toApiError(401, '', 'Votre session a expiré. Veuillez vous reconnecter.');
@@ -87,9 +88,7 @@ async function request<T>(
 }
 
 function getAuthHeaders(): Record<string, string> {
-  if (typeof window === 'undefined') return {};
-  const token = getAuthToken() ?? '';
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return {};
 }
 
 async function upload<T>(
@@ -132,6 +131,7 @@ async function upload<T>(
   if (res.status === 401) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('tnt-token');
+      localStorage.removeItem('tnt-session-active');
       window.location.href = '/login';
     }
     throw toApiError(401, '', 'Votre session a expiré. Veuillez vous reconnecter.');

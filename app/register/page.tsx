@@ -151,7 +151,7 @@ function DocUploadZone({ label, hint, accept = 'image/*,.pdf', onFile }: {
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-gray-800 font-medium truncate">{file.name}</p>
-            <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(0)} Ko</p>
+            <p className="text-xs text-gray-400">{(file.size / 1024).toFixed(0)} Ko · à vérifier à l&apos;envoi</p>
           </div>
           <button type="button" onClick={remove} className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-600 transition-colors">
             <X size={14} />

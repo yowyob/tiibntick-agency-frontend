@@ -36,6 +36,12 @@ const ACCENTS = {
   },
 };
 
+const BUTTON_LABELS: Record<YowyobApp, string> = {
+  HRM: 'Accéder à HRM',
+  BILLING: 'Accéder à Billing',
+  ACCOUNTING: 'Accéder à Accounting',
+};
+
 export default function YowyobLaunchCard({ app, title, description, accent = 'violet' }: Props) {
   const [loading, setLoading] = useState(false);
   const { error: toastError } = useToast();
@@ -70,7 +76,7 @@ export default function YowyobLaunchCard({ app, title, description, accent = 'vi
         className={`inline-flex items-center gap-2 shrink-0 px-3 py-2 text-xs font-medium text-white rounded-lg transition-colors disabled:opacity-70 ${colors.btn}`}
       >
         {loading ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
-        Ouvrir
+        {BUTTON_LABELS[app]}
       </button>
     </div>
   );

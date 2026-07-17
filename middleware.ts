@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { AUTH_COOKIE } from '@/lib/auth-session';
-import { claimRoles, claimString, isPlatformAdmin, parseJwtPayload } from '@/lib/jwt';
+import { claimRoles, claimString, isPlatformAdmin } from '@/lib/jwt';
+import { verifyRequestToken } from '@/lib/server/verify-auth';
 
 const PUBLIC_PATHS = ['/login', '/register', '/pending', '/track', '/admin/login'];
 
@@ -17,15 +18,14 @@ function isAdminArea(pathname: string): boolean {
   return pathname === '/admin' || pathname.startsWith('/admin/');
 }
 
-function hasAdminRole(token: string): boolean {
-  const claims = parseJwtPayload(token);
+function hasAdminRole(claims: Record<string, unknown>): boolean {
   const roles = claimRoles(claims);
   if (isPlatformAdmin(roles)) return true;
   const role = claimString(claims, 'role');
   return role === 'TNT_ADMIN';
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
@@ -37,12 +37,13 @@ export function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get(AUTH_COOKIE)?.value;
+  const verifiedClaims = token ? await verifyRequestToken(request) : null;
 
   if (isAdminArea(pathname)) {
     if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) {
       return NextResponse.next();
     }
-    if (!token || !hasAdminRole(token)) {
+    if (!verifiedClaims || !hasAdminRole(verifiedClaims as Record<string, unknown>)) {
       const login = new URL('/admin/login', request.url);
       login.searchParams.set('from', pathname);
       return NextResponse.redirect(login);
@@ -58,7 +59,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!token) {
+  if (!verifiedClaims) {
     const login = new URL('/login', request.url);
     login.searchParams.set('from', pathname);
     return NextResponse.redirect(login);

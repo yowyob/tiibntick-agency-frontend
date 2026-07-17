@@ -14,6 +14,10 @@ export const livreurMediaService = {
 
   async uploadSignature(dataUrl: string, missionId: string): Promise<string> {
     const blob = await dataUrlToBlob(dataUrl);
+    return this.uploadSignatureBlob(blob, missionId);
+  },
+
+  async uploadSignatureBlob(blob: Blob, missionId: string): Promise<string> {
     const result = await livreurUpload(blob, `signature-${missionId}-${Date.now()}.png`, 'delivery-proof');
     return result.publicUrl || result.url;
   },
@@ -26,6 +30,8 @@ export const livreurMediaService = {
     ].filter(Boolean);
     return tokens.join('|') || `POD-${Date.now()}`;
   },
+
+  dataUrlToBlob,
 };
 
 async function dataUrlToBlob(dataUrl: string): Promise<Blob> {

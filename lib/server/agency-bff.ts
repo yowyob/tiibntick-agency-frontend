@@ -766,6 +766,85 @@ async function launchYowyobApp(request: NextRequest): Promise<NextResponse> {
   return success(unwrap(body))
 }
 
+/** Routes sync offline vers les endpoints Agency Core scopés par agence. */
+export function resolveAgencySyncCorePath(
+  path: string,
+  agencyId: string,
+): string | null {
+  if (path === 'sync/pull' || path === 'sync/push' || path === 'sync/bootstrap') {
+    return `agencies/${encodeURIComponent(agencyId)}/${path}`
+  }
+  const scoped = /^agencies\/([^/]+)\/sync\/(pull|push|bootstrap)$/.exec(path)
+  if (!scoped) return null
+  const requestedAgencyId = decodeURIComponent(scoped[1])
+  if (requestedAgencyId !== agencyId) return null
+  return `agencies/${encodeURIComponent(agencyId)}/sync/${scoped[2]}`
+}
+
+async function proxyAgencySync(
+  request: NextRequest,
+  path: string,
+): Promise<NextResponse> {
+  const tenantId =
+    identityValue(request, 'tid', 'tenantId') ??
+    requiredHeader(request, 'x-tenant-id')
+  const agencyId =
+    identityValue(request, 'aid', 'agencyId') ??
+    requiredHeader(request, 'x-agency-id')
+  const userId =
+    identityValue(request, 'sub', 'userId', 'uid') ??
+    requiredHeader(request, 'x-user-id')
+  if (!tenantId || !agencyId || !userId) {
+    return error(
+      'Tenant, agence et utilisateur sont requis pour la synchronisation.',
+      400,
+      'MISSING_SYNC_CONTEXT',
+    )
+  }
+
+  const corePath = resolveAgencySyncCorePath(path, agencyId)
+  if (!corePath) {
+    return error(
+      'Route de synchronisation invalide ou agence non autorisée.',
+      403,
+      'SYNC_SCOPE_FORBIDDEN',
+    )
+  }
+  if (request.method === 'POST' && !corePath.endsWith('/push')) {
+    return error('Méthode non autorisée pour cette route sync.', 405, 'METHOD_NOT_ALLOWED')
+  }
+  if (request.method === 'GET' && corePath.endsWith('/push')) {
+    return error('Méthode non autorisée pour cette route sync.', 405, 'METHOD_NOT_ALLOWED')
+  }
+
+  const query = new URLSearchParams(request.nextUrl.searchParams)
+  query.delete('tenantId')
+  query.delete('agencyId')
+  const headers = coreHeaders(request, tenantId)
+  headers.set('x-user-id', userId)
+  headers.set('x-agency-id', agencyId)
+  headers.set('x-tenant-id', tenantId)
+  const deviceId = request.headers.get('x-device-id')?.trim()
+  if (deviceId) headers.set('x-device-id', deviceId)
+
+  const url = `${CORE_BASE_URL}/api/v1/tenants/${encodeURIComponent(tenantId)}/agency-registry/${corePath}${
+    query.toString() ? `?${query}` : ''
+  }`
+  const upstream = await fetch(url, {
+    method: request.method,
+    headers,
+    body: await bodyFor(request),
+    redirect: 'manual',
+    cache: 'no-store',
+  })
+  const responseHeadersOut = responseHeaders(upstream)
+  responseHeadersOut.set('Cache-Control', 'no-store')
+  return new NextResponse(upstream.body, {
+    status: upstream.status,
+    headers: responseHeadersOut,
+  })
+}
+
 async function proxySearch(
   request: NextRequest,
   agencyId: string,
@@ -1005,6 +1084,14 @@ export async function handleAgencyBff(
         decodeURIComponent(fleetManRoute[1]),
         fleetManRoute[2],
       )
+    }
+    if (
+      path === 'sync/pull' ||
+      path === 'sync/push' ||
+      path === 'sync/bootstrap' ||
+      /^agencies\/[^/]+\/sync\/(pull|push|bootstrap)$/.test(path)
+    ) {
+      return proxyAgencySync(request, path)
     }
     const trackingStream = /^tracking\/([^/]+)\/stream$/.exec(path)
     if (request.method === 'GET' && trackingStream) {

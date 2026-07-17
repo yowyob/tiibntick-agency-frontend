@@ -4,6 +4,7 @@ import {
   deriveUsername,
   isPublicRequest,
   normalizeBffPath,
+  resolveAgencySyncCorePath,
 } from '@/lib/server/agency-bff'
 
 describe('Agency BFF path validation', () => {
@@ -34,6 +35,25 @@ describe('Agency BFF public surface', () => {
     expect(isPublicRequest('GET', 'agencies')).toBe(false)
     expect(isPublicRequest('PATCH', 'agencies/a/settings')).toBe(false)
     expect(isPublicRequest('GET', 'admin/agencies')).toBe(false)
+    expect(isPublicRequest('GET', 'sync/pull')).toBe(false)
+    expect(isPublicRequest('POST', 'sync/push')).toBe(false)
+  })
+})
+
+describe('Agency sync route rewriting', () => {
+  it('rewrites legacy /sync/* paths with the authenticated agency id', () => {
+    expect(resolveAgencySyncCorePath('sync/pull', 'agency-1'))
+      .toBe('agencies/agency-1/sync/pull')
+    expect(resolveAgencySyncCorePath('sync/push', 'agency-1'))
+      .toBe('agencies/agency-1/sync/push')
+    expect(resolveAgencySyncCorePath('sync/bootstrap', 'agency-1'))
+      .toBe('agencies/agency-1/sync/bootstrap')
+  })
+
+  it('accepts scoped agency paths only for the same agency', () => {
+    expect(resolveAgencySyncCorePath('agencies/agency-1/sync/pull', 'agency-1'))
+      .toBe('agencies/agency-1/sync/pull')
+    expect(resolveAgencySyncCorePath('agencies/other/sync/pull', 'agency-1')).toBeNull()
   })
 })
 

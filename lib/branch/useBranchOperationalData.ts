@@ -8,6 +8,7 @@ export function useBranchOperationalData() {
   const [data, setData] = useState<BranchOperationalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stale, setStale] = useState(false);
 
   const branchId = branchAuthService.getCurrentBranchId();
   const agencyId = branchAuthService.getAgencyId();
@@ -18,6 +19,7 @@ export function useBranchOperationalData() {
     try {
       const next = await branchOperationsService.loadOperationalData(branchId, agencyId);
       setData(next);
+      setStale(next.source === 'cache');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur de chargement');
     } finally {
@@ -29,5 +31,11 @@ export function useBranchOperationalData() {
     void refresh();
   }, [refresh]);
 
-  return { data, loading, error, refresh, branchId, agencyId };
+  useEffect(() => {
+    const onOnline = () => { void refresh(); };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [refresh]);
+
+  return { data, loading, error, refresh, branchId, agencyId, stale };
 }

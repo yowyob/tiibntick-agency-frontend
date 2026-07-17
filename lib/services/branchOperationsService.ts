@@ -4,6 +4,8 @@ import { mapAgency } from '@/lib/api/mappers';
 import type { AgencyDto } from '@/lib/api/dto';
 import type { Branch, Deliverer, Vehicle, Mission, Hub, HubParcelRecord } from '@/lib/types';
 import { computeBranchBenchmarks, type BranchBenchmarkRow } from '@/lib/branch/branchBenchmark';
+import { branchReadModel } from '@/lib/offline/readModel';
+import { branchAuthService } from '@/lib/services/branchAuthService';
 
 export interface BranchOperationalData {
   branch: Branch;
@@ -13,25 +15,66 @@ export interface BranchOperationalData {
   missions: Mission[];
   hubs: Hub[];
   parcels: HubParcelRecord[];
+  source?: 'network' | 'cache';
+  cachedAt?: string;
+}
+
+function branchScopeKey(branchId: string, agencyId: string): string | null {
+  const session = branchAuthService.getSession();
+  if (!session?.tenantId || !session.managerId) return null;
+  return `branch:${session.tenantId}:${agencyId}:${session.managerId}:${branchId}`;
+}
+
+function isOfflineError(err: unknown): boolean {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
+  if (err instanceof TypeError) return true;
+  if (err instanceof Error && /connexion|network|fetch|Failed to fetch/i.test(err.message)) return true;
+  return false;
 }
 
 export const branchOperationsService = {
   async loadOperationalData(branchId: string, agencyId: string): Promise<BranchOperationalData> {
-    const [branch, dashboard, deliverers, vehicles, missions, hubs] = await Promise.all([
-      branchPortalService.getBranch(branchId),
-      branchPortalService.getDashboard(branchId).catch(() => null),
-      branchPortalService.getDeliverers(branchId, agencyId),
-      branchPortalService.getVehicles(branchId, agencyId),
-      branchPortalService.getMissions(branchId, agencyId),
-      branchPortalService.getHubs(branchId, agencyId),
-    ]);
+    const scopeKey = branchScopeKey(branchId, agencyId);
+    try {
+      const [branch, dashboard, deliverers, vehicles, missions, hubs] = await Promise.all([
+        branchPortalService.getBranch(branchId),
+        branchPortalService.getDashboard(branchId).catch(() => null),
+        branchPortalService.getDeliverers(branchId, agencyId),
+        branchPortalService.getVehicles(branchId, agencyId),
+        branchPortalService.getMissions(branchId, agencyId),
+        branchPortalService.getHubs(branchId, agencyId),
+      ]);
 
-    const hubIds = hubs.map(h => h.id);
-    const parcels = hubIds.length > 0
-      ? await branchPortalService.getHubParcels(hubIds)
-      : [];
+      const hubIds = hubs.map(h => h.id);
+      const parcels = hubIds.length > 0
+        ? await branchPortalService.getHubParcels(hubIds)
+        : [];
 
-    return { branch, dashboard, deliverers, vehicles, missions, hubs, parcels };
+      const data: BranchOperationalData = {
+        branch,
+        dashboard,
+        deliverers,
+        vehicles,
+        missions,
+        hubs,
+        parcels,
+        source: 'network',
+      };
+      if (scopeKey) await branchReadModel.saveSnapshot(scopeKey, data);
+      return data;
+    } catch (err) {
+      if (scopeKey && isOfflineError(err)) {
+        const cached = await branchReadModel.getSnapshot(scopeKey);
+        if (cached) {
+          return {
+            ...cached,
+            source: 'cache',
+            cachedAt: (await branchReadModel.freshness(scopeKey)) ?? undefined,
+          };
+        }
+      }
+      throw err;
+    }
   },
 
   async getAgencyName(agencyId: string): Promise<string> {

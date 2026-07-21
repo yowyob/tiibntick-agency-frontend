@@ -7,6 +7,11 @@ import RegisterServiceWorker from '@/components/livreur/RegisterServiceWorker';
 export const metadata: Metadata = {
   title: 'Espace Livreur — TiiBnTick',
   description: 'Application terrain livreur — missions, GPS, preuves de livraison, gains',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
   manifest: '/livreur-manifest.json',
   appleWebApp: {
     capable: true,

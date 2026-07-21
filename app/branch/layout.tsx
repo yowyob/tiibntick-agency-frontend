@@ -7,6 +7,11 @@ import BranchAppShell from './BranchAppShell';
 export const metadata: Metadata = {
   title: 'Espace Antenne — TiiBnTick',
   description: 'Portail opérationnel antenne — dispatch, supervision GPS, hubs relais',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: { index: false, follow: false, noimageindex: true },
+  },
   manifest: '/branch-manifest.json',
   appleWebApp: {
     capable: true,

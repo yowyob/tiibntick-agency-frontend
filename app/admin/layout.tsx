@@ -3,7 +3,7 @@ import AdminShell from '@/components/admin/AdminShell';
 
 export const metadata = {
   title: 'Administration — TiiBnTick',
-  robots: { index: false, follow: false },
+  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

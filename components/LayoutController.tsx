@@ -7,7 +7,7 @@ import Header from './layout/Header'
 import PageTransition from './PageTransition'
 import AuthGuard from './AuthGuard'
 
-const STANDALONE_PREFIXES = ['/login', '/register', '/pending', '/track', '/livreur', '/branch', '/admin']
+const STANDALONE_PREFIXES = ['/login', '/register', '/pending', '/track', '/livreur', '/branch', '/admin', '/guide']
 
 export default function LayoutController({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

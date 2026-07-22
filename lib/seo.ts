@@ -88,6 +88,9 @@ export function buildPageMetadata({
 /** Routes indexables (sitemap + robots allow). */
 export const PUBLIC_SEO_ROUTES: { path: string; changeFrequency: 'weekly' | 'monthly' | 'yearly'; priority: number }[] = [
   { path: '/', changeFrequency: 'weekly', priority: 1 },
+  { path: '/guide', changeFrequency: 'weekly', priority: 0.85 },
+  { path: '/guide/demarrer', changeFrequency: 'weekly', priority: 0.8 },
+  { path: '/guide/workflow-complet', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/track', changeFrequency: 'weekly', priority: 0.9 },
   { path: '/track/deposit', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/login', changeFrequency: 'monthly', priority: 0.6 },
@@ -96,7 +99,8 @@ export const PUBLIC_SEO_ROUTES: { path: string; changeFrequency: 'weekly' | 'mon
   { path: '/branch/login', changeFrequency: 'monthly', priority: 0.5 },
 ]
 
-/** Préfixes privés — X-Robots-Tag noindex (hors pages SEO publiques exactes). */
+/** Pages SEO publiques (exactes ou sous /guide/*). */
 export function isSeoPublicPath(pathname: string): boolean {
+  if (pathname === '/guide' || pathname.startsWith('/guide/')) return true
   return PUBLIC_SEO_ROUTES.some(r => r.path === pathname)
 }

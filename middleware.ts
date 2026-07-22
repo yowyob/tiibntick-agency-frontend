@@ -5,7 +5,7 @@ import { claimRoles, claimString, isPlatformAdmin } from '@/lib/jwt'
 import { verifyRequestToken } from '@/lib/server/verify-auth'
 import { isSeoPublicPath } from '@/lib/seo'
 
-const PUBLIC_PATHS = ['/login', '/register', '/pending', '/track', '/admin/login']
+const PUBLIC_PATHS = ['/login', '/register', '/pending', '/track', '/admin/login', '/guide']
 
 function isPublic(pathname: string): boolean {
   if (pathname === '/') return true

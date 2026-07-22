@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight,
+  BookOpen,
   Building2,
   ChevronDown,
   ConciergeBell,
@@ -189,6 +190,12 @@ export default function LandingPage() {
             >
               Fonctionnalités
             </a>
+            <Link
+              href="/guide"
+              className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+            >
+              Guide
+            </Link>
             <a
               href="#demarrer"
               className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
@@ -836,6 +843,13 @@ export default function LandingPage() {
               <ArrowRight size={16} />
             </Link>
             <Link
+              href="/guide"
+              className="inline-flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-6 py-3 text-sm font-semibold text-orange-700 hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300 dark:hover:bg-orange-500/20"
+            >
+              <BookOpen size={16} />
+              Guide utilisateur
+            </Link>
+            <Link
               href="/track"
               className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-900"
             >
@@ -896,6 +910,11 @@ export default function LandingPage() {
                 <li>
                   <Link href="/track/deposit" className="hover:text-orange-500">
                     Expédier
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/guide" className="hover:text-orange-500">
+                    Guide utilisateur
                   </Link>
                 </li>
               </ul>

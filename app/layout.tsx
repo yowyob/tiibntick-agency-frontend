@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Outfit, Source_Sans_3 } from 'next/font/google'
 import './globals.css'
 import LayoutController from '@/components/LayoutController'
 import { ToastProvider } from '@/contexts/ToastContext'
@@ -13,27 +12,6 @@ import {
   SITE_URL,
   absoluteUrl,
 } from '@/lib/seo'
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-outfit',
-  display: 'swap',
-})
-
-const sourceSans = Source_Sans_3({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-source-sans',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -106,16 +84,17 @@ const themeInitScript = `(function(){try{var t=localStorage.getItem('tnt-theme')
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="fr"
-      suppressHydrationWarning
-      style={{ colorScheme: 'light' }}
-      className={`${inter.variable} ${outfit.variable} ${sourceSans.variable}`}
-    >
+    <html lang="fr" suppressHydrationWarning style={{ colorScheme: 'light' }}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <ToastProvider>
           <LayoutController>
             {children}

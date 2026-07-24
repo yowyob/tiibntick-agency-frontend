@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { QRCodeSVG } from 'qrcode.react'
 import {
   ConciergeBell, QrCode, User, Loader2, Printer, CheckCircle2,
   ClipboardList,
@@ -11,11 +10,12 @@ import { useAgencyLookups } from '@/lib/hooks/useAgencyLookups'
 import { getAgencyId } from '@/lib/session'
 import { intakeDepositUrl, intakeService } from '@/lib/services/intakeService'
 import { trackingService, type PublicRelayHub } from '@/lib/services/trackingService'
+import { agencyService } from '@/lib/services/agencyService'
 import MissionReceipt, { printMissionReceipt } from '@/components/receipt/MissionReceipt'
+import DepositQrPoster from '@/components/accueil/DepositQrPoster'
 import type { IntakeDeliveryMode, IntakeStatusResult } from '@/lib/services/intakeService'
 import { formatUserError } from '@/lib/errors'
 import { useToast } from '@/contexts/ToastContext'
-import { useEffect } from 'react'
 
 const inputCls =
   'w-full h-10 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-400 bg-white'
@@ -27,6 +27,7 @@ export default function AccueilPage() {
   const [tab, setTab] = useState<Tab>('qr')
   const [branchId, setBranchId] = useState('')
   const [hubs, setHubs] = useState<PublicRelayHub[]>([])
+  const [agencyName, setAgencyName] = useState('Agence')
   const [submitting, setSubmitting] = useState(false)
   const [approved, setApproved] = useState<IntakeStatusResult | null>(null)
   const { success: toastSuccess, error: toastError } = useToast()
@@ -41,11 +42,27 @@ export default function AccueilPage() {
 
   const openBranches = branches.filter(b => b.status === 'OPEN')
   const agencyId = getAgencyId()
-  const depositUrl = branchId ? intakeDepositUrl(agencyId, branchId) : ''
+  const selectedBranch = openBranches.find(b => b.id === branchId)
+  const [depositUrl, setDepositUrl] = useState('')
+
+  useEffect(() => {
+    if (!agencyId || !branchId) {
+      setDepositUrl('')
+      return
+    }
+    try {
+      setDepositUrl(intakeDepositUrl(agencyId, branchId))
+    } catch {
+      setDepositUrl('')
+    }
+  }, [agencyId, branchId])
 
   useEffect(() => {
     if (!agencyId) return
     trackingService.listRelayHubs(agencyId).then(setHubs).catch(() => undefined)
+    agencyService.getAgency(agencyId)
+      .then(a => setAgencyName(a.name || a.legalName || 'Agence'))
+      .catch(() => undefined)
   }, [agencyId])
 
   useEffect(() => {
@@ -58,7 +75,7 @@ export default function AccueilPage() {
 
   const handleWalkIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!branchId) return
+    if (!branchId || !agencyId) return
     setSubmitting(true)
     try {
       const result = await intakeService.walkIn(agencyId, {
@@ -96,7 +113,7 @@ export default function AccueilPage() {
           <MissionReceipt data={{
             referenceCode: approved.referenceCode,
             trackingCode: approved.trackingCode,
-            agencyName: approved.agencyName ?? 'Agence',
+            agencyName: approved.agencyName ?? agencyName,
             branchName: approved.branchName ?? branch?.name ?? '',
             senderName: approved.senderName,
             recipientName: approved.recipientName,
@@ -172,15 +189,24 @@ export default function AccueilPage() {
         </button>
       </div>
 
-      {tab === 'qr' && branchId && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center space-y-5">
-          <p className="text-sm text-gray-600">
-            Affichez ce QR à l&apos;accueil. Le client scanne et remplit le formulaire sur son téléphone.
+      {tab === 'qr' && branchId && depositUrl && (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600 text-center">
+            Affichez ou imprimez ce QR à l&apos;accueil. Le client scanne et remplit le formulaire
+            sur son téléphone — le lien pointe vers <strong>votre</strong> agence et l&apos;antenne
+            sélectionnée.
           </p>
-          <div className="flex justify-center">
-            <QRCodeSVG value={depositUrl} size={200} level="M" />
-          </div>
-          <p className="text-xs text-gray-400 break-all font-mono">{depositUrl}</p>
+          <DepositQrPoster
+            depositUrl={depositUrl}
+            agencyName={agencyName}
+            branchName={selectedBranch?.name ?? ''}
+          />
+        </div>
+      )}
+
+      {tab === 'qr' && (!branchId || !depositUrl) && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Sélectionnez une antenne ouverte pour générer le QR de dépôt.
         </div>
       )}
 

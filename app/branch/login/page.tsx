@@ -58,7 +58,7 @@ export default function BranchLoginPage() {
             </div>
             <div>
               <p className="text-white font-semibold text-sm">TiiBnTick Agency</p>
-              <p className="text-orange-100 text-xs">Rapid Express Douala</p>
+              <p className="text-orange-100 text-xs">Portail Antenne</p>
             </div>
           </Link>
         </div>

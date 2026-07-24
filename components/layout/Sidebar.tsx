@@ -6,16 +6,18 @@ import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, Building2, GitBranch, Package,
   Truck, MapPin, Users, Receipt, Settings, LogOut, Search, Smartphone, Store,
-  ConciergeBell, Scale,
+  ConciergeBell, Scale, MessageSquare,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { getAgencyId } from '@/lib/session'
+import { agencyService } from '@/lib/services/agencyService'
 import { intakeService } from '@/lib/services/intakeService'
 
 const navSections = [
   {
     items: [
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'Messagerie', href: '/messages', icon: MessageSquare, isNew: true as const },
     ],
   },
   {
@@ -62,11 +64,20 @@ export default function Sidebar() {
   const pathname = usePathname()
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('Agency Manager')
+  const [agencyName, setAgencyName] = useState('')
   const [pendingIntakes, setPendingIntakes] = useState(0)
 
   useEffect(() => {
     setEmail(localStorage.getItem('tnt-user-email') ?? '')
     setRole(localStorage.getItem('tnt-user-role')?.replace(/_/g, ' ') ?? 'Agency Manager')
+  }, [])
+
+  useEffect(() => {
+    const agencyId = getAgencyId()
+    if (!agencyId) return
+    agencyService.getAgency(agencyId)
+      .then(a => setAgencyName(a.name))
+      .catch(() => setAgencyName(''))
   }, [])
 
   useEffect(() => {
@@ -91,7 +102,9 @@ export default function Sidebar() {
             <span className="text-white font-bold text-xs">TA</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate">TiiBnTick Agency</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 truncate" title={agencyName || 'TiiBnTick Agency'}>
+              {agencyName || 'TiiBnTick Agency'}
+            </p>
             <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">Portail Agence</p>
           </div>
         </div>

@@ -12,14 +12,20 @@ import {
   type NotifType,
 } from '@/lib/services/notificationService'
 import AgencyGlobalSearch from '@/components/agency/AgencyGlobalSearch'
+import { agencyService } from '@/lib/services/agencyService'
+import { getAgencyId } from '@/lib/session'
 
 const breadcrumbMap: Record<string, string> = {
   '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
+  '/messages': 'Messagerie',
+  '/accueil': 'Accueil client',
   '/profile': 'Profil Agence',
   '/branches': 'Antennes',
   '/missions': 'Missions',
   '/fleet': 'Flotte',
   '/hubs': 'Hubs Relais',
+  '/litiges': 'Litiges & incidents',
   '/staff': 'Personnel',
   '/billing': 'Facturation',
   '/settings': 'Paramètres',
@@ -67,10 +73,19 @@ export default function Header() {
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState<AppNotification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
+  const [agencyName, setAgencyName] = useState('')
   const ref = useRef<HTMLDivElement>(null)
 
   const unread = notifs.filter(n => !n.read).length
   const displayed = filter === 'unread' ? notifs.filter(n => !n.read) : notifs
+
+  useEffect(() => {
+    const agencyId = getAgencyId()
+    if (!agencyId) return
+    agencyService.getAgency(agencyId)
+      .then(a => setAgencyName(a.name))
+      .catch(() => setAgencyName(''))
+  }, [])
 
   const markAll = useCallback(async () => {
     try {
@@ -144,7 +159,7 @@ export default function Header() {
     <header className="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between px-6 relative z-30">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-gray-400 dark:text-slate-500">TiiBnTick Agency</span>
+        <span className="text-gray-400 dark:text-slate-500">{agencyName || 'TiiBnTick Agency'}</span>
         <span className="text-gray-300 dark:text-slate-700">/</span>
         <span className="text-gray-900 dark:text-slate-100 font-medium">{pageTitle}</span>
       </div>

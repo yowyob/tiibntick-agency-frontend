@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { AlertTriangle, Loader2, CheckCircle2 } from 'lucide-react'
 import { trackingService, type TrackingResult } from '@/lib/services/trackingService'
-import { PUBLIC_AGENCY_ID } from '@/lib/config'
 import { formatUserError } from '@/lib/errors'
 import { sanitizeText, assertEmail } from '@/lib/admin/security'
 
@@ -16,10 +15,12 @@ const CLAIM_TYPES = [
 
 interface Props {
   parcel: TrackingResult
+  /** Fallback si le suivi ne renvoie pas encore agencyId (ex. ?agencyId= dans l’URL). */
+  agencyId?: string
   onSuccess?: (reference: string) => void
 }
 
-export default function ClaimForm({ parcel, onSuccess }: Props) {
+export default function ClaimForm({ parcel, agencyId: agencyIdProp, onSuccess }: Props) {
   const [open, setOpen] = useState(false)
   const [claimType, setClaimType] = useState<string>('DAMAGED')
   const [email, setEmail] = useState('')
@@ -28,13 +29,19 @@ export default function ClaimForm({ parcel, onSuccess }: Props) {
   const [error, setError] = useState('')
   const [reference, setReference] = useState<string | null>(null)
 
+  const agencyId = (parcel.agencyId ?? agencyIdProp)?.trim() ?? ''
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    if (!agencyId) {
+      setError('Impossible d\'identifier l\'agence pour cette réclamation. Reprenez le lien fourni par l\'agence.')
+      return
+    }
     setLoading(true)
     try {
       const result = await trackingService.submitClaim({
-        agencyId: PUBLIC_AGENCY_ID,
+        agencyId,
         trackingCode: parcel.trackingCode,
         missionId: parcel.mission?.missionId,
         claimType,

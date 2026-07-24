@@ -2,25 +2,27 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, Truck, Package, MapPin, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, Truck, Package, MapPin, LogOut, MessageSquare } from 'lucide-react'
 import clsx from 'clsx'
 import { branchAuthService } from '@/lib/services/branchAuthService'
 import BranchPwaInstallPrompt from '@/components/branch/BranchPwaInstallPrompt'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',  href: '/branch',          icon: LayoutDashboard, exact: true },
-  { label: 'Personnel',  href: '/branch/staff',     icon: Users },
-  { label: 'Flotte',     href: '/branch/fleet',     icon: Truck },
-  { label: 'Missions',   href: '/branch/missions',  icon: Package },
-  { label: 'Hubs Relais',href: '/branch/hubs',      icon: MapPin },
+  { label: 'Dashboard',   href: '/branch',           icon: LayoutDashboard, exact: true },
+  { label: 'Messagerie',  href: '/branch/messages',  icon: MessageSquare },
+  { label: 'Personnel',   href: '/branch/staff',     icon: Users },
+  { label: 'Flotte',      href: '/branch/fleet',     icon: Truck },
+  { label: 'Missions',    href: '/branch/missions',  icon: Package },
+  { label: 'Hubs Relais', href: '/branch/hubs',      icon: MapPin },
 ]
 
 interface Props {
+  agencyName: string
   branchName: string
   managerName: string
 }
 
-export default function BranchSidebar({ branchName, managerName }: Props) {
+export default function BranchSidebar({ agencyName, branchName, managerName }: Props) {
   const pathname = usePathname()
 
   const initials = managerName
@@ -30,6 +32,8 @@ export default function BranchSidebar({ branchName, managerName }: Props) {
     .slice(0, 2)
     .toUpperCase()
 
+  const affiliationLabel = `${agencyName} - Antenne ${branchName}`
+
   return (
     <aside className="w-60 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col h-screen">
       {/* Header */}
@@ -38,7 +42,9 @@ export default function BranchSidebar({ branchName, managerName }: Props) {
           <span className="text-white font-bold text-xs">TA</span>
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-gray-900 truncate">{branchName}</p>
+          <p className="text-xs font-semibold text-gray-900 truncate" title={affiliationLabel}>
+            {affiliationLabel}
+          </p>
           <p className="text-[10px] text-orange-500 font-medium">Espace Antenne</p>
         </div>
       </div>

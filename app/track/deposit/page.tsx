@@ -8,7 +8,6 @@ import {
   User, Phone, Scale,
 } from 'lucide-react'
 import { formatUserError } from '@/lib/errors'
-import { PUBLIC_AGENCY_ID } from '@/lib/config'
 import { intakeService, type IntakeContext, type IntakeDeliveryMode } from '@/lib/services/intakeService'
 import { trackingService, type PublicRelayHub } from '@/lib/services/trackingService'
 
@@ -18,7 +17,7 @@ const inputCls =
 function DepositForm() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const agencyId = searchParams.get('agencyId') ?? PUBLIC_AGENCY_ID
+  const agencyId = searchParams.get('agencyId')?.trim() ?? ''
   const branchId = searchParams.get('branchId') ?? ''
 
   const [context, setContext] = useState<IntakeContext | null>(null)
@@ -42,7 +41,7 @@ function DepositForm() {
   })
 
   useEffect(() => {
-    if (!branchId) {
+    if (!agencyId || !branchId) {
       setError('Lien invalide — scannez le QR code affiché à l\'accueil de l\'agence.')
       setLoading(false)
       return
@@ -67,7 +66,7 @@ function DepositForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!branchId) return
+    if (!agencyId || !branchId) return
     setError('')
     setSubmitting(true)
     try {

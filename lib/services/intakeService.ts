@@ -1,6 +1,6 @@
 import { formatUserError } from '@/lib/errors';
 import { publicFetchJson, publicClientHeaders, publicClientJsonHeaders } from '@/lib/api/publicFetch';
-import { API_BASE_URL, AGENCY_FRONTEND_URL, PUBLIC_AGENCY_ID } from '@/lib/config';
+import { API_BASE_URL, AGENCY_FRONTEND_URL } from '@/lib/config';
 
 export type IntakeStatus = 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 export type IntakeDeliveryMode = 'DIRECT' | 'HUB';
@@ -54,9 +54,18 @@ export interface IntakeSubmitResult {
   createdAt?: string;
 }
 
+/** Origine publique du front (QR / liens client). Évite localhost si une URL prod est configurée. */
+export function publicAppOrigin(): string {
+  const configured = AGENCY_FRONTEND_URL.replace(/\/$/, '');
+  if (typeof window === 'undefined') return configured;
+  if (/localhost|127\.0\.0\.1/i.test(configured)) {
+    return window.location.origin;
+  }
+  return configured;
+}
+
 function trackUrl(code: string): string {
-  const base = AGENCY_FRONTEND_URL.replace(/\/$/, '');
-  return `${base}/track?code=${encodeURIComponent(code)}`;
+  return `${publicAppOrigin()}/track?code=${encodeURIComponent(code)}`;
 }
 
 export function intakeTrackUrl(trackingCode?: string): string | null {
@@ -64,12 +73,20 @@ export function intakeTrackUrl(trackingCode?: string): string | null {
   return trackUrl(trackingCode);
 }
 
-export function intakeDepositUrl(agencyId = PUBLIC_AGENCY_ID, branchId?: string): string {
-  const base = AGENCY_FRONTEND_URL.replace(/\/$/, '');
-  const params = new URLSearchParams({ agencyId });
+/** Lien réel de dépôt client (agencyId + antenne). À encoder dans le QR Accueil. */
+export function intakeDepositUrl(agencyId: string, branchId?: string): string {
+  if (!agencyId.trim()) {
+    throw new Error('agencyId requis pour générer le lien de dépôt.');
+  }
+  const params = new URLSearchParams({ agencyId: agencyId.trim() });
   if (branchId) params.set('branchId', branchId);
-  return `${base}/track/deposit?${params.toString()}`;
+  return `${publicAppOrigin()}/track/deposit?${params.toString()}`;
 }
+
+export function intakeTrackHomeUrl(): string {
+  return `${publicAppOrigin()}/track`;
+}
+
 
 export const intakeService = {
   async getContext(agencyId: string, branchId: string): Promise<IntakeContext> {

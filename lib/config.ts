@@ -39,9 +39,9 @@ export const WHATSAPP_BASE_URL =
 export const AGENCY_FRONTEND_URL =
   process.env.NEXT_PUBLIC_AGENCY_FRONTEND_URL ?? 'http://localhost:3001';
 
-/** Tenant / agence publics — portail client (suivi colis, dépôt) */
+/**
+ * Tenant public — portail client anonyme (suivi / dépôt).
+ * L’agencyId n’est plus en env : il vient du QR / URL / session / réponse suivi.
+ */
 export const PUBLIC_TENANT_ID =
   process.env.NEXT_PUBLIC_TENANT_ID ?? 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-
-export const PUBLIC_AGENCY_ID =
-  process.env.NEXT_PUBLIC_AGENCY_ID ?? 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';

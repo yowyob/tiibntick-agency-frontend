@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import Drawer from './Drawer'
 import { useAgencyLookups } from '@/lib/hooks/useAgencyLookups'
+import { agencyService } from '@/lib/services/agencyService'
 import { branchService } from '@/lib/services/branchService'
 import { getEligibleBranchManagers } from '@/lib/staff-utils'
 import { getAgencyId } from '@/lib/session'
@@ -37,9 +38,17 @@ const initialState = {
 export default function CreateBranchForm({ open, onClose, onSuccess }: Props) {
   const { staff } = useAgencyLookups()
   const [form, setForm] = useState(initialState)
+  const [agencyName, setAgencyName] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const { success: toastSuccess, error: toastError } = useToast()
+
+  useEffect(() => {
+    if (!open) return
+    agencyService.getAgency(getAgencyId())
+      .then(a => setAgencyName(a.name))
+      .catch(() => setAgencyName(''))
+  }, [open])
 
   const update = (field: string, value: string | boolean) =>
     setForm(prev => ({ ...prev, [field]: value }))
@@ -80,7 +89,9 @@ export default function CreateBranchForm({ open, onClose, onSuccess }: Props) {
       open={open}
       onClose={onClose}
       title="Créer une antenne"
-      description="Nouvelle antenne rattachée à Rapid Express Douala"
+      description={agencyName
+        ? `Nouvelle antenne rattachée à ${agencyName}`
+        : 'Nouvelle antenne rattachée à votre agence'}
     >
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">

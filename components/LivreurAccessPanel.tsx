@@ -3,16 +3,22 @@
 import { useState, useEffect } from 'react'
 import { Smartphone, Copy, Check, ExternalLink, Mail } from 'lucide-react'
 import { AGENCY_FRONTEND_URL, WHATSAPP_BASE_URL } from '@/lib/config'
+import { agencyService } from '@/lib/services/agencyService'
+import { getAgencyId } from '@/lib/session'
 import { useToast } from '@/contexts/ToastContext'
 
 export default function LivreurAccessPanel() {
   const [url, setUrl] = useState('')
+  const [agencyName, setAgencyName] = useState('')
   const [copied, setCopied] = useState(false)
   const { success: toastSuccess } = useToast()
 
   useEffect(() => {
     const base = typeof window !== 'undefined' ? window.location.origin : AGENCY_FRONTEND_URL
     setUrl(`${base}/livreur/login`)
+    agencyService.getAgency(getAgencyId())
+      .then(a => setAgencyName(a.name))
+      .catch(() => setAgencyName(''))
   }, [])
 
   const handleCopy = async () => {
@@ -23,6 +29,7 @@ export default function LivreurAccessPanel() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const emailSignature = agencyName || 'TiiBnTick Agency'
   const whatsappText = encodeURIComponent(
     `Bonjour ! Voici votre lien pour accéder à votre espace livreur TiiBnTick Agency :\n${url}\n\nConnectez-vous avec votre numéro de téléphone.`
   )
@@ -78,7 +85,7 @@ export default function LivreurAccessPanel() {
           WhatsApp
         </a>
         <a
-          href={`mailto:?subject=${encodeURIComponent('Accès Espace Livreur TiiBnTick Agency')}&body=${encodeURIComponent(`Bonjour,\n\nVoici votre lien pour accéder à votre espace livreur TiiBnTick Agency :\n${url}\n\nConnectez-vous avec votre numéro de téléphone et votre mot de passe.\n\nCordialement,\nRapid Express Douala`)}`}
+          href={`mailto:?subject=${encodeURIComponent('Accès Espace Livreur TiiBnTick Agency')}&body=${encodeURIComponent(`Bonjour,\n\nVoici votre lien pour accéder à votre espace livreur TiiBnTick Agency :\n${url}\n\nConnectez-vous avec votre numéro de téléphone et votre mot de passe.\n\nCordialement,\n${emailSignature}`)}`}
           className="flex items-center justify-center gap-1.5 h-8 rounded-lg text-xs font-semibold text-white bg-gray-600 hover:bg-gray-700 transition-colors"
         >
           <Mail size={13} />

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Package, Search, Loader2, AlertCircle, ShieldCheck,
-  Copy, Check, Share2, PlusCircle,
+  Copy, Check, Share2,
 } from 'lucide-react'
 import { parcelStatusLabel } from '@/lib/displayLabels'
 import { formatUserError } from '@/lib/errors'
@@ -15,7 +15,15 @@ import TrackHubCard from '@/components/track/TrackHubCard'
 import TrackTimeline from '@/components/track/TrackTimeline'
 import ClaimForm from '@/components/track/ClaimForm'
 
-function ParcelCard({ parcel, onCopy }: { parcel: TrackingResult; onCopy: () => void }) {
+function ParcelCard({
+  parcel,
+  agencyId,
+  onCopy,
+}: {
+  parcel: TrackingResult
+  agencyId?: string
+  onCopy: () => void
+}) {
   const [copied, setCopied] = useState(false)
   const statusLabel = parcelStatusLabel(parcel.status)
   const badgeClass =
@@ -104,8 +112,18 @@ function ParcelCard({ parcel, onCopy }: { parcel: TrackingResult; onCopy: () => 
 
       <TrackHubCard hub={parcel.hub} />
 
+      <Link
+        href="/track/messages"
+        className="block bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm hover:border-orange-200 hover:bg-orange-50/40 transition-colors"
+      >
+        <p className="font-semibold text-gray-900">Contacter l&apos;antenne ou le livreur</p>
+        <p className="text-xs text-gray-500 mt-0.5">
+          Messagerie · bientôt disponible
+        </p>
+      </Link>
+
       {(parcel.status === 'EXPIRED' || parcel.status === 'DEPOSITED' || parcel.status === 'WITHDRAWN') && (
-        <ClaimForm parcel={parcel} />
+        <ClaimForm parcel={parcel} agencyId={agencyId} />
       )}
 
       {parcel.status === 'DEPOSITED' && (
@@ -132,6 +150,7 @@ function ParcelCard({ parcel, onCopy }: { parcel: TrackingResult; onCopy: () => 
 function TrackPageContent() {
   const searchParams = useSearchParams()
   const initialCode = searchParams.get('code') ?? ''
+  const agencyIdFromUrl = searchParams.get('agencyId')?.trim() || undefined
 
   const [trackingCode, setTrackingCode] = useState(initialCode)
   const [parcel, setParcel] = useState<TrackingResult | null>(null)
@@ -196,11 +215,10 @@ function TrackPageContent() {
             </div>
           </Link>
           <Link
-            href="/track/deposit"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 hover:text-orange-700 transition-colors"
+            href="/track/messages"
+            className="text-xs font-semibold text-orange-600 hover:text-orange-700 px-3 py-1.5 rounded-lg border border-orange-200 bg-orange-50"
           >
-            <PlusCircle size={14} />
-            Déposer un colis
+            Messages
           </Link>
         </div>
       </header>
@@ -241,7 +259,13 @@ function TrackPageContent() {
           </div>
         )}
 
-        {parcel && <ParcelCard parcel={parcel} onCopy={() => undefined} />}
+        {parcel && (
+          <ParcelCard
+            parcel={parcel}
+            agencyId={agencyIdFromUrl}
+            onCopy={() => undefined}
+          />
+        )}
 
         {!parcel && !error && !loading && (
           <div className="text-center py-10">
@@ -251,13 +275,9 @@ function TrackPageContent() {
             <p className="text-sm text-gray-500">
               Saisissez votre code de suivi ci-dessus pour commencer.
             </p>
-            <Link
-              href="/track/deposit"
-              className="inline-flex items-center gap-2 mt-5 text-sm font-semibold text-orange-600 hover:text-orange-700"
-            >
-              <PlusCircle size={15} />
-              Vous déposez un colis ? Commencez ici
-            </Link>
+            <p className="text-xs text-gray-400 mt-4 max-w-xs mx-auto leading-relaxed">
+              Pour déposer un colis, scannez le QR code affiché à l&apos;accueil de l&apos;agence.
+            </p>
           </div>
         )}
       </main>

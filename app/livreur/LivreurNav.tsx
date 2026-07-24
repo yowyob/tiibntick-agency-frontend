@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, Map, Wallet, User } from 'lucide-react';
+import { Home, Package, Map, MessageSquare, User } from 'lucide-react';
 
 const navItems = [
   { href: '/livreur', label: 'Accueil', icon: Home, exact: true },
   { href: '/livreur/missions', label: 'Missions', icon: Package },
+  { href: '/livreur/messages', label: 'Messages', icon: MessageSquare },
   { href: '/livreur/carte', label: 'Carte', icon: Map },
-  { href: '/livreur/gains', label: 'Gains', icon: Wallet },
   { href: '/livreur/profile', label: 'Profil', icon: User },
 ];
 

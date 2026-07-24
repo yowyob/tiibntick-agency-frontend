@@ -88,7 +88,14 @@ export default function EditAgencyForm({ open, onClose, onSuccess }: Props) {
   }
 
   return (
-    <Drawer open={open} onClose={onClose} title="Modifier le profil agence" description="Mettre à jour les informations de Rapid Express Douala">
+    <Drawer
+      open={open}
+      onClose={onClose}
+      title="Modifier le profil agence"
+      description={form.name
+        ? `Mettre à jour les informations de ${form.name}`
+        : 'Mettre à jour les informations de votre agence'}
+    >
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {loadingAgency && (

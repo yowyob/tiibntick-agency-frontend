@@ -6,7 +6,9 @@ import Drawer from '@/components/forms/Drawer'
 import UploadableAvatar from '@/components/UploadableAvatar'
 import UploadZone from '@/components/UploadZone'
 import { useAgencyLookups } from '@/lib/hooks/useAgencyLookups'
+import { agencyService } from '@/lib/services/agencyService'
 import { staffService } from '@/lib/services/staffService'
+import { getAgencyId } from '@/lib/session'
 import { toApiCommissionRate } from '@/lib/api/mappers'
 import { contractTitle } from '@/lib/displayLabels'
 import { useToast } from '@/contexts/ToastContext'
@@ -57,7 +59,22 @@ export default function ContractDetailDrawer({ contract, open, onClose, onAction
   const [renewEndDate, setRenewEndDate] = useState('')
   const [editingRemuneration, setEditingRemuneration] = useState(false)
   const [remunerationValue, setRemunerationValue] = useState('')
+  const [agencyName, setAgencyName] = useState('')
+  const [agencyLegalName, setAgencyLegalName] = useState('')
   const { success: toastSuccess, error: toastError } = useToast()
+
+  useEffect(() => {
+    if (!open) return
+    agencyService.getAgency(getAgencyId())
+      .then(a => {
+        setAgencyName(a.name)
+        setAgencyLegalName(a.legalName)
+      })
+      .catch(() => {
+        setAgencyName('')
+        setAgencyLegalName('')
+      })
+  }, [open])
 
   useEffect(() => {
     if (!contract) return
@@ -207,8 +224,8 @@ export default function ContractDetailDrawer({ contract, open, onClose, onAction
                 </div>
                 <div>
                   <p className="text-[11px] text-gray-400 uppercase tracking-wide">Employeur</p>
-                  <p className="text-sm font-semibold text-gray-900">Rapid Express Douala</p>
-                  <p className="text-xs text-gray-400">Rapid Express SARL · AGN-001</p>
+                  <p className="text-sm font-semibold text-gray-900">{agencyName || '—'}</p>
+                  <p className="text-xs text-gray-400">{agencyLegalName || agencyName || '—'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 p-4">

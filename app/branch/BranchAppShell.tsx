@@ -42,20 +42,23 @@ export default function BranchAppShell({ children }: { children: React.ReactNode
 
   if (!session) return null;
 
+  const affiliationLabel = `${agencyName} - Antenne ${session.branchName}`
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <BranchSidebar branchName={session.branchName} managerName={session.managerName} />
+      <BranchSidebar
+        agencyName={agencyName}
+        branchName={session.branchName}
+        managerName={session.managerName}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
           <div>
-            <p className="text-sm font-semibold text-gray-900">{session.branchName}</p>
-            <p className="text-xs text-gray-400">{agencyName}</p>
+            <p className="text-sm font-semibold text-gray-900">{affiliationLabel}</p>
+            <p className="text-xs text-gray-400">Espace Responsable d&apos;Antenne</p>
           </div>
           <div className="flex items-center gap-2">
             <BranchNotificationBell />
-            <span className="text-[11px] font-semibold bg-orange-50 text-orange-600 border border-orange-200 px-2.5 py-1 rounded-full">
-              Espace Antenne
-            </span>
           </div>
         </header>
         <main className="flex-1 overflow-auto">

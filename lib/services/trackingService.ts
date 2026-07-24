@@ -1,7 +1,18 @@
-import { API_BASE_URL, PUBLIC_AGENCY_ID } from '@/lib/config';
+import { API_BASE_URL } from '@/lib/config';
 import { formatUserError } from '@/lib/errors';
 import { publicFetchJson, publicClientHeaders, publicClientJsonHeaders } from '@/lib/api/publicFetch';
 import type { HubParcelStatus } from '@/lib/types';
+
+function requireAgencyId(agencyId: string | undefined | null, context: string): string {
+  const id = agencyId?.trim();
+  if (!id) {
+    throw {
+      status: 400,
+      message: `Agence manquante (${context}). Utilisez le lien fourni par l'agence.`,
+    };
+  }
+  return id;
+}
 
 export interface TrackingHubInfo {
   hubId: string;
@@ -33,6 +44,8 @@ export interface TrackingResult {
   withdrawnBy?: string;
   updatedAt?: string;
   recipientName?: string;
+  /** Présent si le Core / BFF le renvoie avec le suivi. */
+  agencyId?: string;
   hub: TrackingHubInfo;
   mission?: TrackingMissionInfo;
 }
@@ -48,6 +61,7 @@ interface TrackingResponseDto {
   identityVerified: boolean;
   withdrawnBy: string | null;
   updatedAt: string | null;
+  agencyId?: string | null;
   hubName: string;
   hubCode: string;
   hubAddress: string | null;
@@ -73,6 +87,7 @@ function mapTracking(dto: TrackingResponseDto, recipientName?: string): Tracking
     withdrawnBy: dto.withdrawnBy ?? undefined,
     updatedAt: dto.updatedAt ?? undefined,
     recipientName,
+    agencyId: typeof dto.agencyId === 'string' && dto.agencyId.trim() ? dto.agencyId.trim() : undefined,
     hub: {
       hubId: dto.hubId,
       hubName: dto.hubName,
@@ -151,9 +166,10 @@ export interface DropOffResult {
 export const trackingService = {
   trackByCode: fetchTracking,
 
-  async listRelayHubs(agencyId = PUBLIC_AGENCY_ID): Promise<PublicRelayHub[]> {
+  async listRelayHubs(agencyId: string): Promise<PublicRelayHub[]> {
+    const id = requireAgencyId(agencyId, 'liste des hubs');
     return publicFetchJson<PublicRelayHub[]>(
-      `${API_BASE_URL}/agencies/${agencyId}/relay-hubs`,
+      `${API_BASE_URL}/agencies/${id}/relay-hubs`,
       { headers: publicClientHeaders() },
     );
   },
@@ -164,9 +180,9 @@ export const trackingService = {
     recipientName: string;
     recipientPhone?: string;
     trackingCode?: string;
-    agencyId?: string;
+    agencyId: string;
   }): Promise<DropOffResult> {
-    const agencyId = data.agencyId ?? PUBLIC_AGENCY_ID;
+    const agencyId = requireAgencyId(data.agencyId, 'dépôt hub');
     try {
       return await publicFetchJson<DropOffResult>(
         `${API_BASE_URL}/agencies/${agencyId}/drop-off`,
@@ -192,14 +208,14 @@ export const trackingService = {
   },
 
   async submitClaim(data: {
-    agencyId?: string;
+    agencyId: string;
     trackingCode: string;
     missionId?: string;
     claimType: string;
     description: string;
     contactEmail: string;
   }): Promise<ClaimResult> {
-    const agencyId = data.agencyId ?? PUBLIC_AGENCY_ID;
+    const agencyId = requireAgencyId(data.agencyId, 'réclamation');
     return publicFetchJson<ClaimResult>(
       `${API_BASE_URL}/agencies/${agencyId}/claims`,
       {

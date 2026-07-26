@@ -1,3 +1,6 @@
+import { AgentApproveDemo } from '@/components/guide/demos/AgentApproveDemo'
+import { DepositQrScanDemo } from '@/components/guide/demos/DepositQrScanDemo'
+import { ParcelTrackingDemo } from '@/components/guide/demos/ParcelTrackingDemo'
 import {
   Btn, Callout, Field, GLink, H2, H3, P, Path, StatusChip, Steps, Ul,
 } from '@/components/guide/GuidePrimitives'
@@ -75,6 +78,14 @@ export function DepotClient() {
         <strong>Ce que le client voit :</strong> une page « Demande d’expédition /
         Formulaire client » en plusieurs blocs, sans menu agence.
       </P>
+
+      <H3 id="demo-scan">Démo animée — du scan à l’envoi</H3>
+      <P>
+        Vue simplifiée du geste client : scan du QR à l’accueil, saisie sur le
+        téléphone, puis envoi de la demande. Ce n’est pas l’interface exacte —
+        seulement le mouvement à retenir.
+      </P>
+      <DepositQrScanDemo />
       <H3 id="bloc-vous">Bloc « Vos informations »</H3>
       <P>
         Il saisit <Field>Votre nom *</Field> (obligatoire) et{' '}
@@ -191,6 +202,14 @@ export function DepotClient() {
         mode (Direct / Point relais), et les actions <Btn>Approuver</Btn> /{' '}
         <Btn>Refuser</Btn>.
       </P>
+
+      <H3 id="demo-validation">Démo animée — validation par l’agent</H3>
+      <P>
+        Même histoire, vue des deux côtés : le client attend, l’agent approuve, le code
+        de suivi apparaît sur le téléphone.
+      </P>
+      <AgentApproveDemo />
+
       <P>
         <strong>Si vous cliquez Approuver :</strong> la demande disparaît de la file
         (ou change de statut). Le client, de son côté, pourra voir « Demande approuvée »
@@ -242,6 +261,14 @@ export function SuiviColis() {
       </P>
 
       <H2 id="rechercher">Rechercher un colis</H2>
+
+      <H3 id="demo-suivi">Démo animée — suivi du colis</H3>
+      <P>
+        Vue simplifiée : saisie du code, recherche, puis lecture de la timeline
+        (statut actuel mis en avant).
+      </P>
+      <ParcelTrackingDemo />
+
       <Steps
         items={[
           {

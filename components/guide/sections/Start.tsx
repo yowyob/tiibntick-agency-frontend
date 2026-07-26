@@ -1,3 +1,4 @@
+import { WorkflowOverviewDemo } from '@/components/guide/demos/WorkflowOverviewDemo'
 import {
   Btn, Callout, Field, GLink, H2, H3, P, Path, StatusChip, Steps, Ul,
 } from '@/components/guide/GuidePrimitives'
@@ -35,7 +36,8 @@ export function Demarrer() {
         <GLink to="commissions">commission</GLink>.
       </P>
       <P>
-        Version pas à pas avec écrans et toasts :{' '}
+        Version pas à pas avec écrans, toasts et{' '}
+        <GLink to="workflow-complet" hash="vue-ensemble">démo animée du parcours</GLink> :{' '}
         <GLink to="workflow-complet">Workflow complet</GLink>.
       </P>
 
@@ -199,6 +201,13 @@ export function Portails() {
 export function WorkflowComplet() {
   return (
     <>
+      <H2 id="vue-ensemble">Vue d’ensemble animée</H2>
+      <P>
+        Du dépôt client jusqu’à la commission — en six étapes illustrées. Les sections
+        suivantes détaillent chaque clic ; ici, le fil conducteur.
+      </P>
+      <WorkflowOverviewDemo />
+
       <H2 id="etape-1">1. Le client dépose</H2>
       <P>
         Au comptoir HQ : menu <Btn>Accueil client</Btn> (ou{' '}

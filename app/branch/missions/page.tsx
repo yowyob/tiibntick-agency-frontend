@@ -54,7 +54,7 @@ export default function BranchMissionsPage() {
   const deliverers = data?.deliverers ?? [];
   const vehicles = data?.vehicles ?? [];
   const delivererIds = useMemo(() => deliverers.map(d => d.id), [deliverers]);
-  const { livePositions } = useBranchLivePositions(delivererIds);
+  const { livePositions } = useBranchLivePositions(delivererIds, deliverers);
 
   const doRefresh = useCallback(async () => {
     setRefreshing(true);

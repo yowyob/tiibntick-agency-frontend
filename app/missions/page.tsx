@@ -10,6 +10,7 @@ import MissionDetailDrawer from '@/components/MissionDetailDrawer'
 import { usePagination } from '@/lib/hooks/usePagination'
 import Pagination from '@/components/ui/Pagination'
 import { missionService } from '@/lib/services/missionService'
+import { staffService } from '@/lib/services/staffService'
 import { useService } from '@/lib/hooks/useService'
 import { subscribeRealtime } from '@/lib/realtime'
 
@@ -116,6 +117,24 @@ export default function MissionsPage() {
 
   useEffect(() => {
     if (view !== 'map') return
+    void staffService.getDeliverers().then(deliverers => {
+      setLivePositions(prev => {
+        const next = { ...prev }
+        for (const d of deliverers) {
+          if (next[d.id]) continue
+          if (
+            typeof d.lastLatitude === 'number' &&
+            typeof d.lastLongitude === 'number' &&
+            Number.isFinite(d.lastLatitude) &&
+            Number.isFinite(d.lastLongitude)
+          ) {
+            next[d.id] = { lat: d.lastLatitude, lng: d.lastLongitude }
+          }
+        }
+        return next
+      })
+    }).catch(() => undefined)
+
     return subscribeRealtime(event => {
       if (event.channel !== 'tracking' || !event.data) return
       const delivererId = String(event.data.delivererId ?? '')

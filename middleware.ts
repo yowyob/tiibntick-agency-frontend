@@ -5,13 +5,14 @@ import { claimRoles, claimString, isPlatformAdmin } from '@/lib/jwt'
 import { verifyRequestToken } from '@/lib/server/verify-auth'
 import { isSeoPublicPath } from '@/lib/seo'
 
-const PUBLIC_PATHS = ['/login', '/register', '/pending', '/track', '/admin/login', '/guide']
+const PUBLIC_PATHS = ['/login', '/register', '/pending', '/track', '/admin/login', '/guide', '/tarifs', '/pricing']
 
 function isPublic(pathname: string): boolean {
   if (pathname === '/') return true
   if (PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(`${p}/`))) return true
   if (pathname.startsWith('/livreur')) return true
   if (pathname.startsWith('/branch')) return true
+  if (pathname.startsWith('/hub')) return true
   return false
 }
 

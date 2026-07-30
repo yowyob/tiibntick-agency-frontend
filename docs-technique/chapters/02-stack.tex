@@ -1,0 +1,100 @@
+\chapter{Stack technologique}
+
+\section{Frontend --- versions figées dans \texttt{package.json}}
+
+Analyse de \pathref{frontend/package.json} (runtime Agency).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Domaine} & \textbf{Technologie} & \textbf{Version / note} \\
+\midrule
+Framework & Next.js (App Router) & 15.5.20 \\
+UI runtime & React / React DOM & 19.0.0 \\
+Langage & TypeScript & \texttt{\^5} \\
+CSS & Tailwind CSS + PostCSS + Autoprefixer & \texttt{\^3.4.17} \\
+Formulaires & react-hook-form + @hookform/resolvers & \texttt{\^7.76} / \texttt{\^5.4} \\
+Validation & Zod & \texttt{\^4.4.3} \\
+JWT serveur & jose (JWKS) & \texttt{\^6.2.3} \\
+Cartes & Leaflet + react-leaflet & \texttt{\^1.9.4} / \texttt{\^5.0} \\
+Charts & recharts & \texttt{\^3.8.1} \\
+Motion / icônes & framer-motion, lucide-react, clsx & --- \\
+QR & qrcode.react & \texttt{\^4.2.0} \\
+Realtime serveur & ws (pont STOMP/WS Core $\rightarrow$ SSE) & \texttt{\^8.21} \\
+Lint & ESLint 9 + eslint-config-next & 15.5.20 \\
+Tests & Vitest & \texttt{\^3.2.7} \\
+Offline tests & fake-indexeddb & \texttt{\^6.0} \\
+\bottomrule
+\end{tabular}
+\caption{Stack frontend Agency}
+\end{table}
+
+\subsection{Scripts npm}
+
+\begin{lstlisting}
+npm run dev | dev:turbo | build | start | lint | test
+# test = "vitest run"
+\end{lstlisting}
+
+\subsection{Fichiers de tests présents}
+
+\begin{itemize}
+  \item \pathref{tests/agency-bff.test.ts}
+  \item \pathref{tests/fleetman-bff.test.ts}
+  \item \pathref{tests/offline-queue-idb.test.ts}
+  \item \pathref{tests/offline-contracts.test.ts}
+\end{itemize}
+
+\noteeng{Couverture volontairement ciblée BFF/offline --- pas de suite E2E UI
+dans ce dépôt au moment de l'audit.}
+
+\subsection{Configuration Next}
+
+\pathref{next.config.ts} : \texttt{reactStrictMode: true}. Route BFF :
+\pathref{app/api/agency/[...path]/route.ts} avec \texttt{runtime: 'nodejs'} et
+\texttt{dynamic: 'force-dynamic'}.
+
+\section{BFF Java (rollback) --- profil technique}
+
+\begin{itemize}
+  \item Spring WebFlux, port \textbf{8081}, context path \api{/agency}
+  \item Stateless : pas de schéma métier local (DataSource/Liquibase/R2DBC off)
+  \item Clients WebClient vers Core agency-registry + auth/SSO/media/search/\ldots
+  \item OpenAPI / controllers sous \texttt{…infrastructure.web}
+\end{itemize}
+
+\section{Upstream plateforme}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}llp{0.42\textwidth}@{}}
+\toprule
+\textbf{Système} & \textbf{Host typique} & \textbf{Rôle pour Agency} \\
+\midrule
+TiiBnTick Core & tiibntick-core.yowyob.com & Source de vérité registry + proxy IAM \\
+Kernel & kernel-core.yowyob.com & Émetteur JWT / comptes / orgs \\
+Search & tiibntick-search.yowyob.com & Recherche \\
+Trust & tiibntick-trust.yowyob.com & Preuves blockchain (pas auth) \\
+FleetMan & fleetman.yowyob.com & Flotte avancée \\
+\bottomrule
+\end{tabular}
+\caption{Systèmes amont}
+\end{table}
+
+\section{Choix d'architecture applicative (frontend)}
+
+\begin{description}[style=nextline]
+  \item[App Router]
+    Séparation nette des portails par arborescence \pathref{app/}.
+  \item[BFF same-origin]
+    Le navigateur n'embarque jamais \envvar{TNT\_AGENCY\_API\_KEY}. Les appels
+    métier partent vers \api{/api/agency}.
+  \item[Session cookie HttpOnly]
+    Après login, le JWT n'est plus exposé au JS (`accessToken` placeholder
+    \texttt{http-only-session} côté client --- \pathref{lib/session.ts}).
+  \item[Formulaires]
+    RHF + Zod pour les créations métier (missions, policies, branches\ldots).
+  \item[PWA livreur]
+    Service worker + IndexedDB offline queue + sync pull/push/bootstrap.
+\end{description}

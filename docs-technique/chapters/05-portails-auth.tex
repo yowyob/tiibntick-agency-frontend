@@ -1,0 +1,103 @@
+\chapter{Portails, middleware et authentification}
+
+\section{Matrice des portails}
+
+\begin{longtable}{@{}p{0.18\textwidth}p{0.28\textwidth}p{0.22\textwidth}p{0.22\textwidth}@{}}
+\toprule
+\textbf{Portail} & \textbf{Routes} & \textbf{Shell} & \textbf{Auth} \\
+\midrule
+\endhead
+Marketing & \api{/}, \api{/tarifs}, \api{/pricing}$\rightarrow$tarifs & LandingChrome & Public edge \\
+Guide & \api{/guide}, \api{/guide/[slug]} & GuideShell & Public \\
+HQ & \api{/dashboard}, missions, flotte, hubs, staff, billing, accueil, litiges, messages, settings, profile & Sidebar+Header & Cookie + AuthGuard \\
+Register & \api{/register}, \api{/pending} & Standalone & Public \\
+Antenne & \api{/branch/*} & BranchAppShell & Public edge + auth portail \\
+Livreur & \api{/livreur/*} & LivreurNav PWA & Public edge + auth portail \\
+Track & \api{/track}, deposit, messages & Standalone & Public \\
+Admin & \api{/admin/*} & AdminShell & JWT + rôle plateforme \\
+\bottomrule
+\end{longtable}
+
+\section{LayoutController}
+
+\pathref{components/LayoutController.tsx} :
+\begin{itemize}
+  \item Préfixes standalone : login, register, pending, track, livreur, branch,
+        admin, guide, tarifs, pricing, et \api{/}.
+  \item Sinon : \cls{ThemeProvider} + \cls{AuthGuard} + Sidebar + Header +
+        \cls{PageTransition}.
+\end{itemize}
+
+\section{Middleware edge (\pathref{middleware.ts})}
+
+\begin{enumerate}
+  \item Ignore \api{\_next}, \api{/api}, fichiers statiques.
+  \item Zone admin : hors \api{/admin/login}, exige JWT + rôle
+        (\texttt{TNT\_ADMIN} / platform admin via claims).
+  \item Routes publiques listées (dont \api{/tarifs}).
+  \item Sinon : cookie \texttt{tnt-auth} vérifié via JWKS ; sinon redirect
+        \api{/login?from=…}.
+  \item Headers : \texttt{X-Robots-Tag} hors SEO public, nosniff, referrer-policy.
+\end{enumerate}
+
+\noteeng{Ajouter une page marketing sans mettre à jour le middleware provoque
+une fausse « page de connexion » --- déjà observé pour le pricing avant
+whitelist.}
+
+\section{Cookies et session navigateur}
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+\textbf{Artefact} & \textbf{Rôle} & \textbf{Détail} \\
+\midrule
+\texttt{tnt-auth} & JWT HttpOnly & sameSite=lax, secure en prod, maxAge 24h \\
+\texttt{tnt-shared-session} & Handoff SSO Yowyob & Posé au login si fourni Core \\
+localStorage & Métadonnées UX & tenant, agencyId, user, agencyStatus/active \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Le client \textbf{ne lit plus} le JWT (\pathref{lib/session.ts} :
+\texttt{getAuthToken() → null}). Les \texttt{fetch} same-origin envoient le
+cookie automatiquement.
+
+\section{Vérification JWT}
+
+\pathref{lib/server/verify-auth.ts} : bibliothèque \textbf{jose}, JWKS distant
+(\envvar{JWT\_ISSUER\_URI}, \envvar{JWT\_JWK\_SET\_URI}). Source token :
+header \texttt{Authorization: Bearer} \textbf{ou} cookie.
+
+\section{Enrichissement session HQ}
+
+Après login authentifié :
+\begin{enumerate}
+  \item \api{GET /api/agency/auth/session}
+  \item Résolution agency via registry (application \texttt{me}, agence, fallback email)
+  \item Persistance : \texttt{tnt-agency-id}, \texttt{tnt-agency-status},
+        \texttt{tnt-agency-active}, user meta (\pathref{authService.ts})
+\end{enumerate}
+
+Sessions antenne / livreur : endpoints dédiés
+\api{auth/branch/session}, \api{auth/livreur/session} (résolution staff/deliverer
+côté BFF --- coût N+1 possible, dette connue).
+
+\section{AuthGuard client (HQ uniquement)}
+
+\pathref{components/AuthGuard.tsx} :
+\begin{itemize}
+  \item Non authentifié $\rightarrow$ \api{/login} (ou admin login)
+  \item Statut \texttt{REJECTED} $\rightarrow$ pending rejected
+  \item Non \texttt{ACTIVE} $\rightarrow$ \api{/pending}
+\end{itemize}
+
+\section{MFA}
+
+\begin{lstlisting}
+POST login -> 202 / CONFIRM_MFA + mfaToken
+UI MfaChallengeForm -> POST auth/login/mfa/confirm { mfaToken, code }
+\end{lstlisting}
+
+Services : \pathref{yowauthService.ts}, \pathref{useLoginWithMfa},
+\pathref{components/auth/MfaChallengeForm.tsx}.

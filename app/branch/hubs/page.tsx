@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-import { MapPin, Package, AlertTriangle } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { MapPin, Package, AlertTriangle, Search, Phone } from 'lucide-react'
 import { useBranchOperationalData } from '@/lib/branch/useBranchOperationalData'
 import { isHubSaturated, isParcelExpiringSoon, hubOccupancyPct } from '@/lib/branch/actionQueue'
 import HubAlertBanner from '@/components/branch/HubAlertBanner'
@@ -35,17 +35,31 @@ function OccupancyBar({ current, capacity }: { current: number; capacity: number
 }
 
 export default function BranchHubsPage() {
-  const { data, loading, branchId } = useBranchOperationalData();
+  const { data, loading, branchId } = useBranchOperationalData()
+  const [query, setQuery] = useState('')
 
-  const hubs = data?.hubs ?? [];
-  const parcels = data?.parcels ?? [];
+  const hubs = data?.hubs ?? []
+  const parcels = data?.parcels ?? []
 
   const expiringCount = useMemo(
     () => parcels.filter(p => isParcelExpiringSoon(p)).length,
     [parcels],
-  );
+  )
 
-  if (!branchId) return null;
+  const lookup = useMemo(() => {
+    const q = query.trim().toUpperCase()
+    if (q.length < 3) return null
+    const match = parcels.find(
+      p =>
+        p.trackingCode?.toUpperCase().includes(q) ||
+        p.recipientName?.toUpperCase().includes(q),
+    )
+    if (!match) return { found: false as const, q }
+    const hub = hubs.find(h => h.id === match.hubId)
+    return { found: true as const, parcel: match, hub, q }
+  }, [query, parcels, hubs])
+
+  if (!branchId) return null
   if (loading) {
     return (
       <div className="p-6 flex justify-center min-h-[40vh] items-center">
@@ -61,6 +75,42 @@ export default function BranchHubsPage() {
         <p className="text-sm text-gray-400 mt-0.5">
           {hubs.length} hub{hubs.length !== 1 ? 's' : ''} rattaché{hubs.length !== 1 ? 's' : ''} à cette antenne
         </p>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Search size={16} className="text-gray-400" />
+          <p className="text-sm font-semibold text-gray-800">Retrouver un colis / aider un client</p>
+        </div>
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Code de suivi ou nom destinataire…"
+          className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm"
+        />
+        {lookup && !lookup.found && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+            Aucun colis « {lookup.q} » dans les hubs de cette antenne. Vérifiez le code ou contactez le HQ.
+          </p>
+        )}
+        {lookup?.found && (
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-3 space-y-1">
+            <p className="text-sm font-semibold text-gray-900 font-mono">{lookup.parcel.trackingCode}</p>
+            <p className="text-xs text-gray-600">
+              Hub : <strong>{lookup.hub?.name || '—'}</strong>
+              {lookup.hub?.address ? ` — ${lookup.hub.address}` : ''}
+            </p>
+            <p className="text-xs text-gray-500">
+              Destinataire : {lookup.parcel.recipientName || '—'} · statut {lookup.parcel.status}
+            </p>
+            <p className="text-[11px] text-slate-600 pt-1 flex items-start gap-1.5">
+              <Phone size={12} className="mt-0.5 shrink-0" />
+              Client sans smartphone : orientez-le vers ce hub avec une pièce d’identité, ou appelez le
+              gérant ({lookup.hub?.managerName || 'gérant hub'}
+              {lookup.hub?.managerPhone ? ` · ${lookup.hub.managerPhone}` : ''}).
+            </p>
+          </div>
+        )}
       </div>
 
       <HubAlertBanner hubs={hubs} />
@@ -85,7 +135,6 @@ export default function BranchHubsPage() {
             const hubParcels = parcels.filter(p => p.hubId === hub.id && p.status === 'DEPOSITED')
             return (
               <div key={hub.id} className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-                {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
@@ -101,7 +150,6 @@ export default function BranchHubsPage() {
                   </span>
                 </div>
 
-                {/* Occupancy */}
                 <OccupancyBar current={hub.currentOccupancy} capacity={hub.capacity} />
                 {isHubSaturated(hub) && (
                   <p className="text-xs font-semibold text-red-600 flex items-center gap-1">
@@ -109,7 +157,6 @@ export default function BranchHubsPage() {
                   </p>
                 )}
 
-                {/* Info grid */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 rounded-lg p-3">
                     <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide mb-1">Horaires</p>
@@ -121,11 +168,13 @@ export default function BranchHubsPage() {
                   </div>
                 </div>
 
-                {/* Manager */}
                 {hub.managerName && (
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="font-medium">Responsable :</span>
                     <span>{hub.managerName}</span>
+                    {hub.operatorEmail && (
+                      <span className="text-gray-400 truncate">{hub.operatorEmail}</span>
+                    )}
                     {hub.managerPhone && (
                       <a href={`tel:${hub.managerPhone}`} className="text-orange-500 hover:underline ml-1">
                         {hub.managerPhone}
@@ -134,7 +183,6 @@ export default function BranchHubsPage() {
                   </div>
                 )}
 
-                {/* Parcel records */}
                 {hubParcels.length > 0 && (
                   <div className="border-t border-gray-100 pt-3">
                     <div className="flex items-center gap-2 mb-2">

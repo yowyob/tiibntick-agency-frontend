@@ -95,6 +95,7 @@ export const PUBLIC_SEO_ROUTES: { path: string; changeFrequency: 'weekly' | 'mon
   { path: '/track/deposit', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/login', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/register', changeFrequency: 'monthly', priority: 0.8 },
+  { path: '/tarifs', changeFrequency: 'monthly', priority: 0.85 },
   { path: '/livreur/login', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/branch/login', changeFrequency: 'monthly', priority: 0.5 },
 ]

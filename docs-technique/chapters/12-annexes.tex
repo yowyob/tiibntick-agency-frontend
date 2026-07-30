@@ -1,0 +1,85 @@
+\chapter{Annexes}
+
+\section{A --- Index des fichiers critiques}
+
+\begin{longtable}{@{}p{0.48\textwidth}p{0.44\textwidth}@{}}
+\toprule
+\textbf{Chemin} & \textbf{Rôle} \\
+\midrule
+\endhead
+\pathref{frontend/middleware.ts} & Auth edge + SEO headers \\
+\pathref{frontend/app/api/agency/[...path]/route.ts} & Entrée BFF \\
+\pathref{frontend/lib/server/agency-bff.ts} & Router BFF \\
+\pathref{frontend/lib/server/verify-auth.ts} & JWKS / cookies \\
+\pathref{frontend/lib/server/fleetman-bff.ts} & Pont FleetMan \\
+\pathref{frontend/lib/server/presence-stream.ts} & Relais realtime \\
+\pathref{frontend/components/LayoutController.tsx} & Shell vs standalone \\
+\pathref{frontend/components/AuthGuard.tsx} & Garde HQ \\
+\pathref{frontend/lib/livreur/offlineQueue.ts} & Offline IDB \\
+\pathref{frontend/lib/guide/nav.ts} & 17 sections guide \\
+\pathref{frontend/lib/seo.ts} & Metadata / sitemap helpers \\
+\pathref{frontend/lib/config.ts} & Config publique + GLOBAL\_LINKS \\
+\pathref{backend/docs/AUTH\_BFF.md} & Contrat auth \\
+\pathref{backend/docs/ONBOARDING\_KERNEL\_FLOW.md} & Onboarding 2 phases \\
+\pathref{backend/docs/ADR\_CORE\_FIRST\_MIGRATION.md} & Core-first \\
+\pathref{backend/tnt-agency/INTEGRATIONS.md} & Règles BFF Java \\
+\bottomrule
+\end{longtable}
+
+\section{B --- Séquence login HQ (détaillée)}
+
+\begin{lstlisting}
+UI /login
+  POST /api/agency/auth/login { email, password }
+    BFF -> Core /api/v1/auth/login (+ X-Client-Id/Key)
+      alt MFA
+        <- 202 mfaToken
+        UI MfaChallengeForm
+        POST .../mfa/confirm
+      else
+        Set-Cookie tnt-auth (+ tnt-shared-session?)
+  GET /api/agency/auth/session
+    resolve agencyId/status
+  localStorage persist
+  navigate /dashboard
+  AuthGuard OK si ACTIVE
+\end{lstlisting}
+
+\section{C --- Séquence dépôt QR $\rightarrow$ POD}
+
+\begin{lstlisting}
+HQ imprime QR -> /track/deposit?agencyId&branchId
+Client POST intake-requests (public)
+Agent /accueil approve -> mission PENDING
+Antenne/HQ assign -> ASSIGNED
+Livreur pickup -> IN_TRANSIT
+  (offline: enqueue puis sync)
+Livreur deliver + POD -> DELIVERED
+Billing/commissions sur mission cloturee
+\end{lstlisting}
+
+\section{D --- Guide in-app (produit, pas technique)}
+
+17 slugs (\pathref{lib/guide/nav.ts}) : demarrer, portails, depot-client,
+suivi-colis, dashboard, missions, antennes, flotte, hubs, personnel,
+vue-antenne, vue-livreur, commissions, facturation, litiges, parametres,
+workflow-complet --- avec demos sous \pathref{components/guide/demos/}.
+
+\section{E --- Références externes à maintenir synchrones}
+
+\begin{itemize}
+  \item \pathref{ARCHITECTURE\_CORE\_KERNEL\_AGENCY.md} (à réaligner BFF sans DB)
+  \item \pathref{CORE\_CONSUMER\_CONTRACT.md}
+  \item \pathref{CORE\_CONSUMPTION\_AUDIT.md}
+  \item \pathref{KERNEL\_CLIENT\_APPLICATION\_SETUP.md}
+  \item Guide Platform Clients Core
+\end{itemize}
+
+\section{F --- Comment contribuer à ce document}
+
+\begin{enumerate}
+  \item Modifier le chapitre concerné (pas un README parallèle).
+  \item Incrémenter le journal des versions dans \pathref{main.tex}.
+  \item Si contrat BFF change : mettre à jour ch.~4, 6, 8 et tests Vitest.
+  \item Recompiler : \texttt{pdflatex main.tex} (×2).
+\end{enumerate}

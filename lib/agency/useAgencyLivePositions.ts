@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { getTenantId } from '@/lib/session';
-import { API_BASE_URL, USE_CORE_REALTIME } from '@/lib/config';
 import { subscribeCorePresence } from '@/lib/coreRealtime';
+import type { Deliverer } from '@/lib/types';
 
 export interface LivePosition {
   lat: number;
@@ -11,9 +10,35 @@ export interface LivePosition {
   updatedAt: string;
 }
 
-export function useAgencyLivePositions(delivererIds: string[]) {
-  const [positions, setPositions] = useState<Record<string, LivePosition>>({});
+export function seedPositionsFromDeliverers(
+  deliverers: Deliverer[],
+): Record<string, LivePosition> {
+  const out: Record<string, LivePosition> = {};
+  for (const d of deliverers) {
+    if (
+      typeof d.lastLatitude === 'number' &&
+      typeof d.lastLongitude === 'number' &&
+      Number.isFinite(d.lastLatitude) &&
+      Number.isFinite(d.lastLongitude)
+    ) {
+      out[d.id] = {
+        lat: d.lastLatitude,
+        lng: d.lastLongitude,
+        updatedAt: d.lastLocationAt ?? new Date().toISOString(),
+      };
+    }
+  }
+  return out;
+}
+
+export function useAgencyLivePositions(delivererIds: string[], seed?: Record<string, LivePosition>) {
+  const [positions, setPositions] = useState<Record<string, LivePosition>>(seed ?? {});
   const idsKey = delivererIds.sort().join(',');
+
+  useEffect(() => {
+    if (!seed) return;
+    setPositions(prev => ({ ...seed, ...prev }));
+  }, [seed]);
 
   const applyUpdate = useCallback((delivererId: string, lat: number, lng: number) => {
     if (!delivererIds.includes(delivererId)) return;
@@ -25,39 +50,9 @@ export function useAgencyLivePositions(delivererIds: string[]) {
 
   useEffect(() => {
     if (typeof window === 'undefined' || delivererIds.length === 0) return;
-
-    const tenantId = getTenantId();
-    if (!tenantId) return;
-
-    if (USE_CORE_REALTIME) {
-      return subscribeCorePresence((update) => {
-        applyUpdate(update.userId, update.latitude, update.longitude);
-      });
-    }
-
-    const wsBase = API_BASE_URL.replace(/^http/, 'ws');
-    const ws = new WebSocket(`${wsBase}/ws/realtime?tenantId=${encodeURIComponent(tenantId)}`);
-
-    ws.onmessage = (msg) => {
-      try {
-        const event = JSON.parse(msg.data as string) as {
-          channel?: string;
-          type?: string;
-          data?: Record<string, unknown>;
-        };
-        if (event.channel !== 'tracking' || event.type !== 'DELIVERER_LOCATION') return;
-        const data = event.data;
-        if (!data) return;
-        const delivererId = String(data.delivererId ?? '');
-        const lat = Number(data.latitude);
-        const lng = Number(data.longitude);
-        if (delivererId && Number.isFinite(lat) && Number.isFinite(lng)) {
-          applyUpdate(delivererId, lat, lng);
-        }
-      } catch { /* ignore */ }
-    };
-
-    return () => ws.close();
+    return subscribeCorePresence((update) => {
+      applyUpdate(update.userId, update.latitude, update.longitude);
+    });
   }, [idsKey, applyUpdate, delivererIds.length]);
 
   return { positions };

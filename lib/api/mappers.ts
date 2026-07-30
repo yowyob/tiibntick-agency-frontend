@@ -137,6 +137,9 @@ export function mapDeliverer(dto: DelivererDto): Deliverer {
     vehicleId: dto.vehicleId,
     vehiclePlate: dto.vehiclePlate,
     joinedAt: dto.joinedAt?.slice(0, 10) ?? '',
+    lastLatitude: typeof dto.lastLatitude === 'number' ? dto.lastLatitude : undefined,
+    lastLongitude: typeof dto.lastLongitude === 'number' ? dto.lastLongitude : undefined,
+    lastLocationAt: dto.lastLocationAt,
   };
 }
 
@@ -233,8 +236,11 @@ export function mapHub(dto: HubDto): Hub {
       ? Math.max(1, Math.round(dto.retentionDelayHours / 24))
       : 3,
     status: mapHubStatus(dto.status),
-    managerName: dto.managerName,
+    managerName: dto.operatorName ?? dto.managerName,
     managerPhone: dto.managerPhone,
+    operatorName: dto.operatorName ?? dto.managerName,
+    operatorEmail: dto.operatorEmail,
+    operatorUserId: dto.operatorUserId,
     openingHours: dto.openingHours ?? '08:00–18:00',
   };
 }

@@ -160,6 +160,9 @@ export interface DropOffResult {
   trackingCode: string;
   withdrawalDeadline?: string;
   hubId: string;
+  senderName?: string;
+  recipientName?: string;
+  recipientPhone?: string;
   message: string;
 }
 

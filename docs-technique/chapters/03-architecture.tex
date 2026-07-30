@@ -1,0 +1,93 @@
+\chapter{Architecture système}
+
+\section{Règle d'or des couches}
+
+\begin{lstlisting}[caption={Frontières Kernel / Core / Agency}]
+Yowyob Kernel (IAM, org, RBAC, JWT RS256)
+        ^
+        |  UNIQUEMENT via Core (proxy /api/v1/auth/**, SSO, onboarding)
+        |
+TiiBnTick Core  (tnt-bootstrap)
+  - agency-registry  /api/v1/tenants/{tid}/agency-registry/**
+  - auth, media, KYC, realtime, SSO
+        ^
+        |  X-Client-Id + X-Api-Key (+ Bearer utilisateur)
+        |
+Agency BFF  (Next /api/agency  OU  Java /agency/v1)
+        ^
+        |  same-origin + cookie tnt-auth
+        |
+Navigateur multi-portails
+\end{lstlisting}
+
+Interdits documentés (\pathref{CORE\_CONSUMER\_CONTRACT.md}) :
+\begin{itemize}
+  \item Platform $\rightarrow$ Kernel en HTTP/JDBC/Kafka kernel direct ;
+  \item secrets Core dans le bundle \texttt{NEXT\_PUBLIC\_*} ;
+  \item confondre Trust (:8090) avec le service d'authentification.
+\end{itemize}
+
+\section{Dual BFF --- vérité opérationnelle}
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\textwidth}{@{}lXX@{}}
+\toprule
+\textbf{Critère} & \textbf{Next \api{/api/agency}} & \textbf{Java \texttt{tnt-agency}} \\
+\midrule
+Statut runtime & \textbf{Principal} (README frontend) & Rollback / historique \\
+Entrée HTTP & Route Handlers Node & WebFlux :8081 \api{/agency} \\
+Auth & \pathref{agency-bff.ts} $\rightarrow$ Core & \cls{AuthBffController} $\rightarrow$ Core \\
+Métier & Proxy registry + cas spéciaux & Controllers + \texttt{*ErpClient} \\
+DB locale & Aucune & Aucune (stateless actuel) \\
+\bottomrule
+\end{tabularx}
+\caption{Matrice dual BFF}
+\end{table}
+
+\noteeng{Toute évolution de contrat doit décider explicitement si le rollback
+Java doit rester à parité. Aujourd'hui le username signup est volontairement
+aligné (\texttt{deriveUsername}) pour éviter une divergence Kernel.}
+
+\section{Schéma runtime Next}
+
+\begin{lstlisting}
+[Landing / Tarifs / Guide]   [HQ shell]   [/branch]   [/livreur PWA]   [/track]
+            \________ LayoutController + middleware.ts ________/
+                              |
+                   fetch /api/agency/{path}
+                              |
+                 lib/server/agency-bff.ts
+                              |
+        +----------+----------+-----------+------------+
+        |          |          |           |            |
+     Core       Search    FleetMan   presence WS    SSO Core
+   registry              (chiffr.)   -> SSE
+\end{lstlisting}
+
+\section{Identifiants multi-tenant}
+
+\begin{enumerate}
+  \item \textbf{Tenant plateforme} --- env public, pour portail anonyme.
+  \item \textbf{AgencyId} --- résolu dynamiquement (QR \texttt{?agencyId=},
+        session HQ après \api{auth/session}, tracking).
+  \item Headers BFF$\rightarrow$Core : \texttt{x-tenant-id}, credentials
+        plateforme, éventuellement Bearer utilisateur (cookie lu serveur).
+\end{enumerate}
+
+\section{Modèle organisationnel cible (docs)}
+
+D'après \pathref{ARCHITECTURE\_CORE\_KERNEL\_AGENCY.md} : \\
+\textit{1 entreprise (SARL) = 1 tenant = 1 organisation Kernel = 1 Agency TNT},
+avec champs \texttt{kernel\_organization\_id}, \texttt{kernel\_business\_actor\_id}
+après onboarding.
+
+\section{ADR Core-first}
+
+\pathref{ADR\_CORE\_FIRST\_MIGRATION.md} (Accepté, phases 1--6) : Core = source
+de vérité logistique. Flags Java typiques :
+\texttt{core-first-delivery|realtime|inventory|billing|incidents|media},
+\texttt{strict-sync}. Frontend : \envvar{NEXT\_PUBLIC\_USE\_CORE\_REALTIME}.
+
+Conséquence eng. : pas de « mode fantôme » métier si Core est down --- fail
+visible plutôt que cohérence locale mensongère.

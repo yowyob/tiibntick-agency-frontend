@@ -6,6 +6,7 @@ export const STAFF_ROLE_LABELS: Record<StaffRole, string> = {
   OPERATIONS_MANAGER: 'Responsable opérations',
   ACCOUNTANT: 'Comptable',
   DISPATCHER: 'Dispatcher',
+  HUB_OPERATOR: 'Gérant de hub',
 }
 
 /** Rôles éligibles comme responsable d'une antenne */

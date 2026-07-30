@@ -6,16 +6,13 @@ import {
   ArrowRight,
   BookOpen,
   Building2,
-  ChevronDown,
   ConciergeBell,
   MapPin,
-  Moon,
   Package,
   Receipt,
   Scale,
   Smartphone,
   Store,
-  Sun,
   Truck,
   Users,
 } from 'lucide-react'
@@ -24,6 +21,8 @@ import { CaptureFrame } from './UiMockups'
 import Image from 'next/image'
 import Reveal from './Reveal'
 import { FramedMedia, HeroTextMotif } from './MediaFrame'
+import LandingChrome from './LandingChrome'
+import { CREATE_ENTERPRISE_CTA } from './landingCopy'
 
 const PORTALS = [
   {
@@ -43,6 +42,15 @@ const PORTALS = [
     cta: 'Espace antenne',
     icon: Store,
     mock: 'branch' as const,
+  },
+  {
+    id: 'hub',
+    title: 'Je gère un hub relais',
+    desc: 'Stock, validation dépôt/retrait, QR codes hub.',
+    href: '/hub/login',
+    cta: 'Espace hub',
+    icon: ConciergeBell,
+    mock: 'hub' as const,
   },
   {
     id: 'livreur',
@@ -85,15 +93,15 @@ const FLOW = [
   },
   {
     label: 'Transit / hub',
-    detail: 'Suivi GPS & relais',
+    detail: 'Scan dépôt & validation',
     explain:
-      'Le colis circule entre antennes et hubs relais. Le GPS live et les scans de passage permettent de savoir où il se trouve à chaque étape.',
+      'Le livreur scanne le QR Dépôt du hub. Une demande arrive chez le gérant, qui valide. Le colis est en stock hub jusqu’au retrait (QR Retrait, confirmation client, ou aide antenne sans smartphone).',
   },
   {
     label: 'POD ou relais',
-    detail: 'Preuve ou dépôt hub',
+    detail: 'Preuve ou retrait hub',
     explain:
-      'Livraison avec preuve (signature, photo) ou dépôt en point relais. Le statut passe à livré / en attente de retrait, visible côté client.',
+      'Livraison domicile avec preuve (signature, photo), ou retrait au hub après validation. Le suivi client avance automatiquement.',
   },
   {
     label: 'Facturation',
@@ -104,22 +112,14 @@ const FLOW = [
 ]
 
 export default function LandingPage() {
-  const { theme, toggleTheme } = useTheme()
-  const [scrolled, setScrolled] = useState(false)
-  const [connOpen, setConnOpen] = useState(false)
+  const { theme } = useTheme()
   const [activePortal, setActivePortal] = useState(0)
   const [heroReady, setHeroReady] = useState(false)
   const [activeFlow, setActiveFlow] = useState<number | null>(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
     const t = requestAnimationFrame(() => setHeroReady(true))
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(t)
-    }
+    return () => cancelAnimationFrame(t)
   }, [])
 
   /** Demande l’autorisation de localisation à l’ouverture du site. */
@@ -147,112 +147,10 @@ export default function LandingPage() {
     )
   }, [])
 
-  useEffect(() => {
-    if (!connOpen) return
-    const close = () => setConnOpen(false)
-    window.addEventListener('click', close)
-    return () => window.removeEventListener('click', close)
-  }, [connOpen])
-
   const portal = PORTALS[activePortal]
 
   return (
-    <div className="landing-root font-landing text-slate-900 antialiased dark:text-slate-100">
-      {/* ── Nav ─────────────────────────────────────────── */}
-      <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? 'border-b border-slate-200/80 bg-[#F7F6F4]/90 backdrop-blur-md dark:border-slate-800 dark:bg-[#0B1220]/90'
-            : 'bg-transparent'
-        }`}
-      >
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-[11px] font-bold text-white">
-              TA
-            </span>
-            <span className="font-display text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
-              TiiBnTick{' '}
-              <span className="text-slate-500 dark:text-slate-400">Agency</span>
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
-            <a
-              href="#portails"
-              className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-            >
-              Portails
-            </a>
-            <a
-              href="#fonctionnalites"
-              className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-            >
-              Fonctionnalités
-            </a>
-            <Link
-              href="/guide"
-              className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-            >
-              Guide
-            </Link>
-            <a
-              href="#demarrer"
-              className="text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-            >
-              Démarrer
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
-              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                onClick={() => setConnOpen((o) => !o)}
-                className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200/60 dark:text-slate-200 dark:hover:bg-slate-800"
-              >
-                Connexion
-                <ChevronDown size={14} className={connOpen ? 'rotate-180' : ''} />
-              </button>
-              {connOpen && (
-                <div className="absolute right-0 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                  {[
-                    { href: '/login', label: 'Agence' },
-                    { href: '/branch/login', label: 'Antenne' },
-                    { href: '/livreur/login', label: 'Livreur' },
-                  ].map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
-                      onClick={() => setConnOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
-            >
-              Créer mon agence
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <LandingChrome active="home">
       {/* ── Hero ────────────────────────────────────────── */}
       <section className="relative min-h-[100svh] overflow-hidden bg-white dark:bg-[#0B1220]">
         {/* Texte — fond blanc ; padding gauche réduit pour laisser place à l’image */}
@@ -282,7 +180,7 @@ export default function LandingPage() {
                 href="/register"
                 className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
               >
-                Créer mon agence
+                {CREATE_ENTERPRISE_CTA}
                 <ArrowRight size={16} />
               </Link>
               <Link
@@ -368,10 +266,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <Reveal className="max-w-2xl">
             <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-              Une agence. Quatre espaces.
+              Une agence. Cinq espaces.
             </h2>
             <p className="mt-3 text-base text-slate-600 dark:text-slate-400">
-              Choisissez votre entrée. Tout reste synchronisé — du directeur au livreur, jusqu’au
+              Choisissez votre entrée. Tout reste synchronisé — du directeur au gérant de hub, jusqu’au
               client qui suit son colis.
             </p>
           </Reveal>
@@ -433,7 +331,7 @@ export default function LandingPage() {
                 <CaptureFrame
                   kind={portal.mock}
                   className={
-                    portal.mock === 'branch'
+                    portal.mock === 'branch' || portal.mock === 'hub'
                       ? 'w-full max-w-md'
                       : portal.mock === 'dashboard'
                         ? 'w-full max-w-lg'
@@ -754,9 +652,16 @@ export default function LandingPage() {
                 <MapPin className="text-orange-500" size={22} />
                 <h3 className="mt-4 font-display text-xl font-semibold">Hubs relais</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                  Configurez vos points relais, suivez l’occupation, déposez et retirez des colis,
-                  gérez la rétention avant saturation.
+                  Points relais avec gérant dédié : file de validation dépôt/retrait, QR codes,
+                  stock et confirmation client — ou aide via l&apos;antenne sans smartphone.
                 </p>
+                <Link
+                  href="/hub/login"
+                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-orange-600 dark:text-orange-400"
+                >
+                  Espace hub
+                  <ArrowRight size={14} />
+                </Link>
               </div>
             </Reveal>
           </div>
@@ -828,7 +733,7 @@ export default function LandingPage() {
       >
         <Reveal className="mx-auto max-w-3xl px-5 text-center sm:px-8">
           <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            Inscrivez votre agence. Puis vous pilotez.
+            Inscrivez votre entreprise. Puis vous pilotez.
           </h2>
           <p className="mt-4 text-base text-slate-600 dark:text-slate-400">
             Création du compte, pièces KYC (CNI, RCCM…), paramétrage opérationnel. Après validation,
@@ -839,8 +744,14 @@ export default function LandingPage() {
               href="/register"
               className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-6 py-3 text-sm font-semibold text-white hover:bg-orange-600"
             >
-              Créer mon agence
+              {CREATE_ENTERPRISE_CTA}
               <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/tarifs"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-900"
+            >
+              Voir les tarifs
             </Link>
             <Link
               href="/guide"
@@ -859,73 +770,7 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────── */}
-      <footer className="border-t border-slate-200 bg-[#F7F6F4] py-12 dark:border-slate-800 dark:bg-[#0B1220]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 sm:flex-row sm:items-start sm:justify-between sm:px-8">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-orange-500 text-[10px] font-bold text-white">
-                TA
-              </span>
-              <span className="font-display text-sm font-semibold">TiiBnTick Agency</span>
-            </div>
-            <p className="mt-3 max-w-xs text-sm text-slate-500 dark:text-slate-400">
-              Plateforme de gestion pour agences de livraison.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3">
-            <div>
-              <p className="font-semibold text-slate-800 dark:text-slate-200">Portails</p>
-              <ul className="mt-3 space-y-2 text-slate-500 dark:text-slate-400">
-                <li>
-                  <Link href="/login" className="hover:text-orange-500">
-                    Agence
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/branch/login" className="hover:text-orange-500">
-                    Antenne
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/livreur/login" className="hover:text-orange-500">
-                    Livreur
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/track" className="hover:text-orange-500">
-                    Suivi colis
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <p className="font-semibold text-slate-800 dark:text-slate-200">Agence</p>
-              <ul className="mt-3 space-y-2 text-slate-500 dark:text-slate-400">
-                <li>
-                  <Link href="/register" className="hover:text-orange-500">
-                    Créer mon agence
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/track/deposit" className="hover:text-orange-500">
-                    Expédier
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/guide" className="hover:text-orange-500">
-                    Guide utilisateur
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className="mx-auto mt-10 max-w-6xl px-5 text-xs text-slate-400 sm:px-8">
-          © {new Date().getFullYear()} TiiBnTick Agency
-        </div>
-      </footer>
-    </div>
+    </LandingChrome>
   )
 }
 

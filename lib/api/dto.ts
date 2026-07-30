@@ -86,6 +86,10 @@ export interface DelivererDto {
   createdAt?: string;
   updatedAt?: string;
   version?: number;
+  lastLatitude?: number;
+  lastLongitude?: number;
+  lastAccuracyMeters?: number;
+  lastLocationAt?: string;
 }
 
 export interface ContractDto {
@@ -194,6 +198,9 @@ export interface HubDto {
   city?: string;
   managerName?: string;
   managerPhone?: string;
+  operatorName?: string;
+  operatorEmail?: string;
+  operatorUserId?: string;
   createdAt?: string;
   updatedAt?: string;
   version?: number;

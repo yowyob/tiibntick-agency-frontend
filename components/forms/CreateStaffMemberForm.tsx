@@ -27,7 +27,7 @@ const cls = {
 const schema = z.object({
   fullName: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
   phone: z.string().regex(/^\+?[0-9\s]{8,15}$/, 'Numéro de téléphone invalide'),
-  email: z.string().email('Email invalide').or(z.literal('')).optional(),
+  email: z.string().email('Email invalide — requis pour envoyer les identifiants'),
   role: z.enum(['AGENCY_MANAGER', 'BRANCH_MANAGER', 'OPERATIONS_MANAGER', 'ACCOUNTANT', 'DISPATCHER']),
   branchId: z.string().optional(),
 })
@@ -59,11 +59,11 @@ export default function CreateStaffMemberForm({ open, onClose, onSuccess }: Prop
       await staffService.registerStaffMember(getAgencyId(), {
         fullName: data.fullName,
         phone: data.phone,
-        ...(data.email ? { email: data.email } : {}),
+        email: data.email,
         role: data.role,
         ...(data.branchId ? { branchId: data.branchId } : {}),
       })
-      toastSuccess('Membre du personnel enregistré.')
+      toastSuccess('Membre enregistré. Les identifiants ont été envoyés par email.')
       onSuccess?.()
       reset()
       setTimeout(onClose, 400)
@@ -102,7 +102,7 @@ export default function CreateStaffMemberForm({ open, onClose, onSuccess }: Prop
                 {errors.phone && <p className={cls.error}>{errors.phone.message}</p>}
               </div>
               <div>
-                <label className={cls.label}>Email</label>
+                <label className={cls.label}>Email <span className="text-orange-500">*</span></label>
                 <input
                   {...register('email')}
                   type="email"
@@ -110,6 +110,7 @@ export default function CreateStaffMemberForm({ open, onClose, onSuccess }: Prop
                   className={`${cls.input} ${errors.email ? cls.inputError : cls.inputOk}`}
                 />
                 {errors.email && <p className={cls.error}>{errors.email.message}</p>}
+                <p className="text-xs text-gray-400 mt-1">Les identifiants de connexion seront envoyés à cette adresse.</p>
               </div>
             </div>
           </div>

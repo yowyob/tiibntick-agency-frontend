@@ -146,7 +146,8 @@ export function VueAntenne() {
       <H2 id="hubs-locaux">Hubs de l’antenne</H2>
       <P>
         Menu Hubs Relais : occupation, alertes, colis bientôt expirés — même logique que{' '}
-        <GLink to="hubs">Hubs</GLink> HQ, limitée à votre zone. Si un hub est plein :
+        <GLink to="hubs">Hubs</GLink> HQ, limitée à votre zone. Cherchez un colis par code
+        de suivi pour orienter un client (surtout sans smartphone). Si un hub est plein :
         redirigez les dépôts ou traitez les retraits / expirations avant d’accepter
         d’autres colis.
       </P>

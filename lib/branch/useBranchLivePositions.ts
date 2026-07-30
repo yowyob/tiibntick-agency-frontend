@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { API_BASE_URL } from '@/lib/config';
+import { useEffect, useState, useCallback } from 'react';
+import type { Deliverer } from '@/lib/types';
+import { subscribeCorePresence } from '@/lib/coreRealtime';
+import { seedPositionsFromDeliverers, type LivePosition } from '@/lib/agency/useAgencyLivePositions';
 
-export interface LivePosition {
-  lat: number;
-  lng: number;
-  updatedAt: string;
-}
+export type { LivePosition };
 
-export function useBranchLivePositions(delivererIds: string[]) {
+export function useBranchLivePositions(delivererIds: string[], deliverers?: Deliverer[]) {
   const [positions, setPositions] = useState<Record<string, LivePosition>>({});
   const idsKey = delivererIds.sort().join(',');
+
+  useEffect(() => {
+    if (!deliverers?.length) return;
+    const seeded = seedPositionsFromDeliverers(deliverers);
+    setPositions(prev => ({ ...seeded, ...prev }));
+  }, [deliverers]);
 
   const applyUpdate = useCallback((delivererId: string, lat: number, lng: number) => {
     if (!delivererIds.includes(delivererId)) return;
@@ -23,33 +27,9 @@ export function useBranchLivePositions(delivererIds: string[]) {
 
   useEffect(() => {
     if (typeof window === 'undefined' || delivererIds.length === 0) return;
-
-    const tenantId = localStorage.getItem('tnt-branch-tenant-id');
-    if (!tenantId) return;
-
-    const wsBase = API_BASE_URL.replace(/^http/, 'ws');
-    const ws = new WebSocket(`${wsBase}/ws/realtime?tenantId=${encodeURIComponent(tenantId)}`);
-
-    ws.onmessage = (msg) => {
-      try {
-        const event = JSON.parse(msg.data as string) as {
-          channel?: string;
-          type?: string;
-          data?: Record<string, unknown>;
-        };
-        if (event.channel !== 'tracking' || event.type !== 'DELIVERER_LOCATION') return;
-        const data = event.data;
-        if (!data) return;
-        const delivererId = String(data.delivererId ?? '');
-        const lat = Number(data.latitude);
-        const lng = Number(data.longitude);
-        if (delivererId && Number.isFinite(lat) && Number.isFinite(lng)) {
-          applyUpdate(delivererId, lat, lng);
-        }
-      } catch { /* ignore */ }
-    };
-
-    return () => ws.close();
+    return subscribeCorePresence((update) => {
+      applyUpdate(update.userId, update.latitude, update.longitude);
+    });
   }, [idsKey, applyUpdate, delivererIds.length]);
 
   const asLatLng = (): Record<string, { lat: number; lng: number }> => {

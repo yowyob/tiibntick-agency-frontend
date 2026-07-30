@@ -21,7 +21,7 @@ export const GUIDE_GROUPS = [
 
 const META: Omit<GuideSectionMeta, 'headings'>[] = [
   { slug: 'demarrer', title: 'Bienvenue dans le guide', description: 'Comprendre TiiBnTick Agency et choisir le bon portail selon votre rôle.', group: 'Démarrer' },
-  { slug: 'portails', title: 'Les quatre portails', description: 'Agence, antenne, livreur et suivi colis — à quoi sert chaque entrée et comment s’y connecter.', group: 'Démarrer' },
+  { slug: 'portails', title: 'Les portails', description: 'Agence, antenne, hub, livreur et suivi colis — à quoi sert chaque entrée et comment s’y connecter.', group: 'Démarrer' },
   { slug: 'depot-client', title: 'Dépôt et accueil client', description: 'QR autonome, walk-in au comptoir, validation des demandes et reçu — pas à pas.', group: 'Parcours client' },
   { slug: 'suivi-colis', title: 'Suivi de colis', description: 'Recherche par code, lecture de la fiche, hub de retrait et réclamation.', group: 'Parcours client' },
   { slug: 'dashboard', title: 'Centre de commandement', description: 'Tableau de bord HQ : alertes, file d’actions, KPI et vision réseau.', group: 'Agence (HQ)' },

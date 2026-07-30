@@ -11,21 +11,26 @@ export default function AgencyGlobalSearch() {
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const runSearch = useCallback(async (q: string) => {
     if (q.trim().length < 2) {
       setHits([]);
+      setError('');
       return;
     }
     setLoading(true);
+    setError('');
     try {
       const result = await searchService.search(q);
       setHits(result.hits);
       setOpen(true);
-    } catch {
+    } catch (err) {
       setHits([]);
+      setError(err instanceof Error ? err.message : 'Recherche indisponible');
+      setOpen(true);
     } finally {
       setLoading(false);
     }
@@ -48,6 +53,7 @@ export default function AgencyGlobalSearch() {
   const selectHit = (hit: SearchHit) => {
     setOpen(false);
     setQuery('');
+    setError('');
     router.push(searchResultHref(hit));
   };
 
@@ -58,29 +64,33 @@ export default function AgencyGlobalSearch() {
         type="text"
         value={query}
         onChange={e => setQuery(e.target.value)}
-        onFocus={() => hits.length > 0 && setOpen(true)}
+        onFocus={() => (hits.length > 0 || error) && setOpen(true)}
         placeholder="Rechercher missions, livreurs…"
         className="pl-8 pr-8 py-1.5 text-sm bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 dark:text-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-400 w-52"
       />
       {loading && (
         <Loader2 size={14} className="absolute right-3 text-gray-400 animate-spin" />
       )}
-      {open && hits.length > 0 && (
+      {open && (hits.length > 0 || error) && (
         <div className="absolute top-full left-0 mt-1 w-80 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl overflow-hidden z-50">
-          {hits.map(hit => (
-            <button
-              key={`${hit.entityType}-${hit.entityId}`}
-              type="button"
-              onClick={() => selectHit(hit)}
-              className="w-full text-left px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-slate-800 border-b border-gray-50 dark:border-slate-800 last:border-0"
-            >
-              <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">{hit.title}</p>
-              <p className="text-[10px] text-orange-600 uppercase font-semibold">{hit.entityType}</p>
-              {hit.snippet && (
-                <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{hit.snippet}</p>
-              )}
-            </button>
-          ))}
+          {error ? (
+            <p className="px-4 py-3 text-sm text-red-600">{error}</p>
+          ) : (
+            hits.map(hit => (
+              <button
+                key={`${hit.entityType}-${hit.entityId}`}
+                type="button"
+                onClick={() => selectHit(hit)}
+                className="w-full text-left px-4 py-2.5 hover:bg-orange-50 dark:hover:bg-slate-800 border-b border-gray-50 dark:border-slate-800 last:border-0"
+              >
+                <p className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">{hit.title}</p>
+                <p className="text-[10px] text-orange-600 uppercase font-semibold">{hit.entityType}</p>
+                {hit.snippet && (
+                  <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{hit.snippet}</p>
+                )}
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>

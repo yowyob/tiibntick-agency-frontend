@@ -1,0 +1,81 @@
+\chapter{Déploiement, configuration et SEO}
+
+\section{Prérequis runtime}
+
+\begin{itemize}
+  \item Node.js $\geq$ 20, npm $\geq$ 9
+  \item Platform Client Core valide
+  \item JWKS Kernel joignable depuis le process Next
+  \item Accès réseau Core / Search / FleetMan selon features activées
+\end{itemize}
+
+\section{Commandes}
+
+\begin{lstlisting}
+cd frontend
+cp .env.example .env.local   # renseigner secrets
+npm install
+npm run dev                  # local
+npm run build && npm run start
+npm test
+\end{lstlisting}
+
+\section{Variables --- contrat \pathref{.env.example}}
+
+\subsection{Publiques (build-time)}
+
+\begin{itemize}
+  \item \envvar{NEXT\_PUBLIC\_API\_BASE\_URL} /
+        \envvar{NEXT\_PUBLIC\_AGENCY\_PUBLIC\_BASE\_URL} $\rightarrow$ \api{/api/agency}
+  \item \envvar{NEXT\_PUBLIC\_AGENCY\_FRONTEND\_URL} --- SEO, QR absolus
+  \item \envvar{NEXT\_PUBLIC\_TENANT\_ID} --- tenant plateforme public
+  \item Carte : \texttt{MAP\_TILE\_URL}, centre Douala par défaut, attribution OSM
+  \item \envvar{NEXT\_PUBLIC\_USE\_CORE\_REALTIME}
+  \item Trust URL, site global, légal, réseaux sociaux
+\end{itemize}
+
+\subsection{Serveur (runtime secrets)}
+
+\begin{itemize}
+  \item Core : base URL, WS, client id, api key
+  \item JWT : issuer + JWKS
+  \item Search base URL
+  \item FleetMan : API/UI, enabled, encryption key, allow plaintext=false prod
+\end{itemize}
+
+\noteeng{Changer une variable \texttt{NEXT\_PUBLIC\_*} impose un rebuild.
+Les secrets ne doivent jamais utiliser ce préfixe.}
+
+\section{SEO}
+
+\begin{itemize}
+  \item \pathref{lib/seo.ts} --- \texttt{buildPageMetadata},
+        \texttt{PUBLIC\_SEO\_ROUTES}, \texttt{isSeoPublicPath}
+  \item \pathref{app/sitemap.ts} --- routes publiques + toutes sections guide
+  \item \pathref{app/robots.ts} --- allow marketing/track/login ; disallow
+        \api{/api/}, HQ ops, \api{/livreur/}, \api{/branch/}
+  \item JSON-LD landing : \pathref{components/seo/JsonLd.tsx}
+\end{itemize}
+
+\section{Checklist mise en production}
+
+\begin{enumerate}[leftmargin=*]
+  \item Secrets Core/FleetMan renseignés ; plaintext FleetMan off.
+  \item \envvar{NEXT\_PUBLIC\_TENANT\_ID} = UUID tenant plateforme réel.
+  \item Middleware : toutes pages publiques whitelistées.
+  \item Smoke : login HQ MFA, register, approve admin, track QR, mission
+        assignée, POD livreur, sync offline simulée.
+  \item Vérifier SSO launch si HRM/KSM activés (org Kernel liée).
+  \item \texttt{npm run build} + \texttt{npm test} verts.
+\end{enumerate}
+
+\section{Hosts de référence}
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+Agency UI & \texttt{https://tiibntick-agency.yowyob.com} \\
+Core & \texttt{https://tiibntick-core.yowyob.com} \\
+Kernel & \texttt{https://kernel-core.yowyob.com} \\
+Entry / légal & \texttt{https://tiibntick.yowyob.com} \\
+\bottomrule
+\end{tabular}

@@ -276,7 +276,16 @@ function TrackPageContent() {
               Saisissez votre code de suivi ci-dessus pour commencer.
             </p>
             <p className="text-xs text-gray-400 mt-4 max-w-xs mx-auto leading-relaxed">
-              Pour déposer un colis, scannez le QR code affiché à l&apos;accueil de l&apos;agence.
+              Pour une demande de livraison, scannez le QR code à l&apos;accueil.
+              {' '}
+              {agencyIdFromUrl && (
+                <Link
+                  href={`/track/drop-off?agencyId=${encodeURIComponent(agencyIdFromUrl)}`}
+                  className="text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  Déposer directement au hub →
+                </Link>
+              )}
             </p>
           </div>
         )}

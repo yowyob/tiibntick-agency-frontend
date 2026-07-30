@@ -1,0 +1,76 @@
+\chapter{Temps réel et mode hors-ligne livreur}
+
+\section{Temps réel --- deux chemins}
+
+\subsection{Chemin par défaut (Core)}
+
+\begin{itemize}
+  \item Flag : \envvar{NEXT\_PUBLIC\_USE\_CORE\_REALTIME=true}
+  \item Client : \texttt{EventSource} vers
+        \api{/api/agency/realtime/presence}
+  \item Serveur : \pathref{presence-stream.ts} ouvre WS/STOMP vers Core
+        (\envvar{TNT\_CORE\_WS\_URL}) et relaie en SSE
+  \item Impl client : \pathref{lib/coreRealtime.ts}, variantes branch
+        \pathref{branchRealtime.ts}
+\end{itemize}
+
+\subsection{Chemin legacy}
+
+Si flag \texttt{false} : WebSocket legacy branché sur la base API
+(\pathref{lib/realtime.ts}). Coexistence = dette de simplification.
+
+\subsection{SSE métier}
+
+Streams tracking et événements mission exposés par le BFF (routes dédiées dans
+\pathref{agency-bff.ts}).
+
+\section{Offline livreur --- conception}
+
+\subsection{Objectifs}
+
+Continuer pickup / deliver / anomaly / deposit-hub / location sans réseau, puis
+réconcilier.
+
+\subsection{Composants}
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Module} & \textbf{Rôle} \\
+\midrule
+\pathref{lib/livreur/offlineQueue.ts} & File IndexedDB \texttt{tnt-livreur-offline} \\
+\pathref{lib/livreur/syncService.ts} & pull / push / bootstrap $\rightarrow$
+  \api{agencies/\{id\}/sync/*} \\
+\pathref{lib/livreur/syncConflicts.ts} & Résolution conflits \\
+\pathref{lib/offline/readModel.ts} & Cache read-model local \\
+UI & \cls{OfflineSyncBanner}, SW (\cls{RegisterServiceWorker}), install PWA \\
+Tests & \pathref{tests/offline-queue-idb.test.ts},
+  \pathref{tests/offline-contracts.test.ts} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Types d'opérations queue}
+
+Pickup, deliver (POD), anomaly, deposit-hub, location --- alignés sur les
+transitions livreur online.
+
+\subsection{Exigences non fonctionnelles}
+
+\begin{enumerate}
+  \item Idempotence autant que le contrat Core le permet.
+  \item Horodatage client + serveur pour départager.
+  \item Aucune sync hors session livreur authentifiée (cookie).
+  \item Toute évolution de schéma IndexedDB = migration versionnée + test.
+\end{enumerate}
+
+\begin{lstlisting}[caption={Boucle sync offline}]
+Action terrain (offline)
+  -> enqueue IndexedDB
+  -> retour réseau
+  -> syncService push
+  -> Core sync via BFF
+  -> pull/bootstrap refresh read-model
+  -> UI retire / marque conflits
+\end{lstlisting}

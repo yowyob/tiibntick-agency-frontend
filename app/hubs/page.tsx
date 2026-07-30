@@ -123,15 +123,20 @@ function HubCard({ hub, photoUrl, onPhotoChange, onConfigure }: {
           </div>
         </div>
 
-        {hub.managerName && (
+        {(hub.managerName || hub.operatorName) && (
           <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center">
                 <span className="text-[10px] font-semibold text-gray-600">
-                  {hub.managerName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  {(hub.operatorName || hub.managerName || '?').split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </span>
               </div>
-              <span className="text-xs text-gray-600">{hub.managerName}</span>
+              <div className="min-w-0">
+                <span className="text-xs text-gray-600 block truncate">{hub.operatorName || hub.managerName}</span>
+                {hub.operatorEmail && (
+                  <span className="text-[10px] text-gray-400 block truncate">{hub.operatorEmail}</span>
+                )}
+              </div>
             </div>
             <span className="text-[11px] text-gray-400">{hub.managerPhone}</span>
           </div>

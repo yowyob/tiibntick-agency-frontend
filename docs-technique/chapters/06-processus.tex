@@ -1,0 +1,101 @@
+\chapter{Processus métier bout-en-bout}
+
+\section{P1 --- Inscription entreprise et activation}
+
+\subsection{Étapes produit}
+
+\begin{enumerate}
+  \item Création compte IAM (signup BFF $\rightarrow$ Core $\rightarrow$ Kernel).
+  \item Formulaire multi-étapes \pathref{app/register/page.tsx}
+        (identité, KYC docs, settings, credentials).
+  \item \texttt{registerService.submitApplication} $\rightarrow$
+        \api{/onboarding/applications}.
+  \item Complétion identité Kernel :
+        \texttt{completeKernelIdentity} / \texttt{ensureKernelIdentity}.
+  \item Attente \api{/pending} (\texttt{getMyApplication}).
+  \item Admin TNT : \api{/admin/onboarding/[id]} --- approve/reject
+        (\pathref{onboardingAdminService.ts}).
+\end{enumerate}
+
+\subsection{Contrainte Kernel critique}
+
+\pathref{ONBOARDING\_KERNEL\_FLOW.md} : l'endpoint actors/onboarding est lié au
+\texttt{sub} du JWT. La phase 1 \textbf{doit} s'exécuter avec le JWT
+\textbf{candidat}. Approuver avec le JWT admin sans phase 1 associée crée le
+mauvais BusinessActor.
+
+\subsection{Phase admin (orchestration Core)}
+
+Approve $\rightarrow$ organisation Kernel + rôles TNT + options plateforme
+(trust ON) + rôle manager. Prérequis : \texttt{kernelIdentityReady=true}.
+
+SSO post-activation (HRM / KSM\ldots) exige \texttt{kernelOrganizationId}.
+
+\begin{lstlisting}[caption={Séquence onboarding (simplifiée)}]
+Candidat -> BFF signup -> Core auth/sign-up -> Kernel
+Candidat -> BFF onboarding/applications (+ Bearer candidat)
+Candidat -> BFF .../kernel-identity
+Admin    -> BFF admin/.../approve -> Core onboarding approve
+         -> Agency ACTIVE + org Kernel liée
+\end{lstlisting}
+
+\section{P2 --- Intake client et création de mission}
+
+\subsection{Canal QR public}
+
+\begin{enumerate}
+  \item HQ génère URL : \texttt{intakeDepositUrl(agencyId, branchId)}
+        $\rightarrow$ \api{/track/deposit?agencyId=\&branchId=}.
+  \item Client charge contexte : \api{GET agencies/\{id\}/intake-context}.
+  \item Submit : \api{POST intake-requests}.
+  \item Agent HQ : file \api{/accueil/demandes} --- approve/reject.
+  \item Walk-in direct : \api{/accueil} via \texttt{intakeService.walkIn}.
+\end{enumerate}
+
+\subsection{Canal suivi}
+
+\api{/track} : recherche code, stream SSE optionnel, claims / drop-off / hubs
+relais (\pathref{trackingService.ts}, \pathref{complianceService.ts}).
+
+\section{P3 --- Lifecycle mission}
+
+Statuts (\pathref{lib/types.ts}) :
+\texttt{DRAFT → PENDING → ASSIGNED → IN\_TRANSIT → AT\_HUB → DELIVERED}
+(ou \texttt{FAILED}/\texttt{CANCELLED}).
+
+\begin{description}[style=nextline]
+  \item[HQ / Antenne]
+    create, assign/reassign, cancel/reschedule, deposit-hub, withdraw
+    (\pathref{missionService.ts}, services branch).
+  \item[Livreur]
+    pickup, deliver (+ POD), anomaly ; si offline $\rightarrow$ queue IndexedDB
+    puis sync (\pathref{livreurMissionService}, \pathref{offlineQueue.ts}).
+\end{description}
+
+\section{P4 --- Facturation et commissions}
+
+\begin{itemize}
+  \item Politiques tarifaires actives (devise XAF typique).
+  \item Estimation à la création de mission.
+  \item Factures / revenus après clôture.
+  \item Commissions livreur (portail gains + HQ personnel).
+\end{itemize}
+Services : \pathref{billingService.ts}, \pathref{livreurCommissionService.ts}.
+
+\section{P5 --- Flotte et FleetMan}
+
+\begin{enumerate}
+  \item CRUD véhicules Agency (registry).
+  \item Pont FleetMan (managers HQ) :
+        \api{agencies/\{id\}/fleetman/\{status|connect|launch|sync\}}.
+  \item Tokens stockés chiffrés AES
+        (\envvar{TNT\_FLEETMAN\_TOKEN\_ENCRYPTION\_KEY}) ;
+        plaintext interdit en prod.
+\end{enumerate}
+
+\section{P6 --- Hubs et Trust}
+
+Transitions hub / POD peuvent ancrer des preuves côté Trust \textbf{via Core}
+après activation. Le frontend expose
+\envvar{NEXT\_PUBLIC\_TNT\_TRUST\_BASE\_URL} mais n'implémente pas (audit) un
+client Trust autonome --- la vérité passe par les APIs agency/Core.

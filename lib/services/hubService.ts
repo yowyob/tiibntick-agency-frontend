@@ -113,4 +113,10 @@ export const hubService = {
       identityVerified: true,
     });
   },
+
+  async provisionOperator(agencyId: string, hubId: string, data: {
+    fullName: string; phone: string; email: string; branchId?: string;
+  }): Promise<void> {
+    await apiClient.post(`/agencies/${agencyId}/hubs/${hubId}/operators`, data);
+  },
 };

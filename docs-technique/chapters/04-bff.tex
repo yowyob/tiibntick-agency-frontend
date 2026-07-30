@@ -1,0 +1,117 @@
+\chapter{BFF Next.js --- conception détaillée}
+
+\section{Point d'entrée}
+
+\begin{itemize}
+  \item Route : \pathref{app/api/agency/[...path]/route.ts}
+  \item Handler : \pathref{lib/server/agency-bff.ts} --- \texttt{handleAgencyBff}
+  \item Auth JWT : \pathref{lib/server/verify-auth.ts}
+  \item FleetMan : \pathref{lib/server/fleetman-bff.ts}
+  \item Présence : \pathref{lib/server/presence-stream.ts}
+\end{itemize}
+
+\section{Pipeline de traitement d'une requête}
+
+\begin{enumerate}
+  \item \texttt{normalizeBffPath} --- refuse \texttt{..}, schemes, \texttt{\textbackslash 0}
+        (anti path-traversal).
+  \item Cas \api{auth/logout} --- clear cookies.
+  \item Si route non publique $\rightarrow$ \texttt{verifyRequestToken}
+        (Bearer ou cookie \texttt{tnt-auth}).
+  \item Branches dédiées : auth, sessions enrichies, media/KYC, Yowyob launch,
+        presence, search, fleetman, sync, SSE tracking/missions.
+  \item \textbf{Fallback} : proxy Agency Registry \\
+        \api{\{CORE\}/api/v1/tenants/\{tenantId\}/agency-registry/\{path\}}
+\end{enumerate}
+
+\section{Routes publiques BFF (\texttt{isPublicRequest})}
+
+Sans JWT :
+\begin{itemize}
+  \item \texttt{POST} \api{auth/login}, \api{auth/signup}, \api{auth/login/mfa/confirm}
+  \item \texttt{GET} \api{tracking/\{code\}} et \api{tracking/\{code\}/stream}
+  \item \texttt{GET} \api{intake-requests/\{id\}}
+  \item \texttt{GET} \api{agencies/\{id\}/relay-hubs|intake-context}
+  \item \texttt{POST} \api{intake-requests}, \api{agencies/\{id\}/drop-off|claims}
+  \item \texttt{POST} \api{hub-handoffs/\{id\}/confirm-client}
+\end{itemize}
+
+Sessions enrichies (JWT) : \api{auth/session}, \api{auth/branch/session},
+\api{auth/livreur/session}, \api{auth/hub/session}.
+
+Rewrites / handlers dédiés :
+\begin{itemize}
+  \item \texttt{hubs/*/parcels} POST $\rightarrow$ \texttt{\ldots/deposit}
+  \item \texttt{hubs/expired} $\rightarrow$ \texttt{\ldots/process} + mapping \texttt{\{processed\}}
+  \item withdraw par recordId $\rightarrow$ \texttt{hub-parcels/\{tracking\}/withdraw}
+  \item \texttt{PATCH deliverers/\{id\}/location} $\rightarrow$ persist + \texttt{realtime/gps/ping}
+  \item \texttt{GET admin/agencies} $\rightarrow$ page \texttt{\{items,page,size,total\}}
+\end{itemize}
+
+Toute nouvelle API anonyme doit être ajoutée ici \textbf{et} dans le middleware
+edge si elle a une page associée.
+
+\section{Envelope de réponse}
+
+Helpers \texttt{success()} / \texttt{error()} :
+
+\begin{lstlisting}
+{
+  "status": "SUCCESS" | "ERROR",
+  "data": { ... } | null,
+  "error": { "code": "...", "message": "..." } | null,
+  "timestamp": "ISO-8601"
+}
+\end{lstlisting}
+
+Client : \pathref{lib/api/envelope.ts} (\texttt{unwrapApiData}),
+\pathref{lib/api/client.ts}, messages FR \pathref{lib/errors.ts}.
+
+\noteeng{Hétérogénéité connue : certaines réponses session/media sont en JSON
+plat (hors envelope). \texttt{unwrapApiData} tolère les deux formes --- dette
+à résorber pour homogénéiser les contrats.}
+
+\section{Mapping auth BFF $\rightarrow$ Core}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{BFF} & \textbf{Core} \\
+\midrule
+\api{POST \ldots/auth/login} & \api{POST /api/v1/auth/login} \\
+\api{POST \ldots/auth/signup} & \api{POST /api/v1/auth/sign-up} \\
+\api{POST \ldots/auth/login/mfa/confirm} & \api{POST /api/v1/auth/login/mfa/confirm} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Signup force côté BFF : \texttt{accountType: BUSINESS},
+\texttt{businessType: LOGISTICS}, username via \texttt{deriveUsername(email)}
+(aligné BFF Java).
+
+Outcomes documentés : \texttt{AUTHENTICATED} | \texttt{MFA\_REQUIRED} |
+\texttt{EMAIL\_VERIFICATION\_REQUIRED}.
+
+\section{Credentials serveur}
+
+Injectés uniquement serveur :
+\begin{itemize}
+  \item \envvar{TNT\_CORE\_BASE\_URL}, \envvar{TNT\_CORE\_WS\_URL}
+  \item \envvar{TNT\_AGENCY\_CLIENT\_ID}, \envvar{TNT\_AGENCY\_API\_KEY}
+  \item Alias legacy acceptés : \texttt{CORE\_BASE\_URL}, \texttt{CORE\_CLIENT\_ID},
+        \texttt{YOWAUTH0\_*}
+\end{itemize}
+
+\section{BFF Java --- cartographie controllers (rollback)}
+
+Préfixe effectif \api{/agency/v1/…} (échantillon) :
+\cls{AuthBffController}, \cls{OnboardingController},
+\cls{OnboardingAdminController}, \cls{AgencyController},
+\cls{MissionController}, \cls{HubController}, \cls{FleetController},
+\cls{FleetManController}, \cls{BillingController}, \cls{IntakeController},
+\cls{ClientController}, \cls{ComplianceController}, \cls{SyncController},
+\cls{YowyobIntegrationController}, streams SSE.
+
+Clients ERP : package \texttt{agencyerp/*ErpClient} sur
+\api{/api/v1/tenants/\{tid\}/agency-registry}.

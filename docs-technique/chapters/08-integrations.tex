@@ -1,0 +1,61 @@
+\chapter{Intégrations externes}
+
+\section{Tableau de synthèse}
+
+\begin{longtable}{@{}p{0.18\textwidth}p{0.32\textwidth}p{0.42\textwidth}@{}}
+\toprule
+\textbf{Système} & \textbf{Mécanisme} & \textbf{Fichiers / env} \\
+\midrule
+\endhead
+Core Registry & Proxy HTTP BFF & \pathref{agency-bff.ts}, \envvar{TNT\_CORE\_*} \\
+Core Auth & Proxy /api/v1/auth & Platform Client ID/Key \\
+Core Media/KYC & Routes BFF dédiées & \pathref{mediaService.ts} \\
+Core Realtime & WS serveur $\rightarrow$ SSE client & \pathref{presence-stream.ts},
+  \pathref{coreRealtime.ts} \\
+Core SSO & /api/v1/sso/yowyob/launch & shared-session cookie \\
+Search & Proxy \envvar{TNT\_SEARCH\_BASE\_URL} & échec $\rightarrow$ hits vides \\
+FleetMan & status/connect/launch/sync & \pathref{fleetman-bff.ts}, AES tokens \\
+Trust & Preuves via Core ; URL publique & \envvar{NEXT\_PUBLIC\_TNT\_TRUST\_BASE\_URL} \\
+Yowyob apps & HRM, ACCOUNTING, BILLING, CASHIER\ldots &
+  \pathref{yowyobIntegrationService.ts} \\
+Maps/WhatsApp & Liens UI only & \texttt{NEXT\_PUBLIC\_MAPS\_*}, \texttt{WHATSAPP\_*} \\
+Site global & CGU/privacy/cookies/social & \pathref{lib/config.ts} \texttt{GLOBAL\_LINKS} \\
+\bottomrule
+\end{longtable}
+
+\section{Platform Client Core}
+
+Avant tout appel prod, Agency doit disposer d'un client plateforme créé via
+\api{/api/v1/admin/platform-clients} (rôle \texttt{TNT\_ADMIN}) puis d'une
+API key (\texttt{plaintextSecret} une seule fois). Scopes : \texttt{*} ou
+\texttt{AUTH:*}, \texttt{SSO:*}, \texttt{ONBOARDING:*}, etc. (guide
+\pathref{core/docs/auth/platform-client-onboarding-guide.md}).
+
+\section{SSO Yowyob --- process}
+
+\begin{lstlisting}
+UI YowyobLaunchCard
+  -> GET /api/agency/integrations/yowyob/launch?app=HRM|...
+  -> BFF ajoute shared session + tenant + agency (+ branch)
+  -> Core /api/v1/sso/yowyob/launch
+  -> redirect app Yowyob /sso/callback?token&organizationId&scope
+\end{lstlisting}
+
+Prérequis : onboarding approuvé (\texttt{kernelOrganizationId}). Rôles autorisés
+selon l'app (managers, accountant, branch manager scopé).
+
+\section{FleetMan --- particularités}
+
+\begin{itemize}
+  \item Pas de SSO Yowyob pour FleetMan (auth propre / password user --- commentaire code).
+  \item Restriction fréquente aux managers HQ dans le BFF.
+  \item Chiffrement tokens obligatoire hors local.
+\end{itemize}
+
+\section{Règles d'évolution}
+
+\begin{enumerate}
+  \item Nouvel externe = client \textbf{uniquement} dans \pathref{lib/server/*}.
+  \item Documenter env dans \pathref{.env.example}.
+  \item Mettre à jour ce chapitre + tests Vitest si contrat BFF change.
+\end{enumerate}

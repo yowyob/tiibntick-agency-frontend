@@ -1,0 +1,75 @@
+\chapter{Sécurité, opérations et dette technique}
+
+\section{Contrôles de sécurité implémentés}
+
+\begin{itemize}
+  \item JWT validé JWKS (edge + BFF).
+  \item Cookie session HttpOnly ; pas de Bearer dans localStorage.
+  \item Path normalization anti-traversal sur le BFF.
+  \item Séparation Platform Client / RBAC utilisateur.
+  \item Chiffrement tokens FleetMan.
+  \item Headers basiques (nosniff, referrer, robots).
+  \item Rôles admin plateforme sur \api{/admin/*}.
+\end{itemize}
+
+\section{Runbook --- symptômes fréquents}
+
+\begin{longtable}{@{}p{0.28\textwidth}p{0.32\textwidth}p{0.32\textwidth}@{}}
+\toprule
+\textbf{Symptôme} & \textbf{Cause probable} & \textbf{Action} \\
+\midrule
+\endhead
+Redirect login sur page publique & Middleware whitelist & Ajouter route \\
+401 Core & Client/API key & Platform Client / secrets \\
+kernelIdentityReady=false & Core down / credentials / JWT & Retry identité candidat \\
+400 identité incomplète à l'approve & Phase 1 oubliée & JWT candidat kernel-identity \\
+403 create org & Pas OWNER / permissions & Parcours onboarding docs Kernel \\
+MFA admin bloquante & MFA non activée durablement & Activer MFA compte admin \\
+Auth « sur Trust :8090 » & Mauvaise URL & Corriger vers Kernel/Core \\
+FleetMan connect fail & Clé AES / plaintext & Vérifier encryption key \\
+\bottomrule
+\end{longtable}
+
+\section{Dette technique constatée (audit code)}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Dual BFF} --- Next runtime vs Java rollback ; parité non
+        garantie route par route.
+  \item \textbf{Tests} --- 4 fichiers Vitest ; pas d'E2E.
+  \item \textbf{Trust sous-câblé} côté front.
+  \item \textbf{Auth asymétrique} --- \api{/branch} et \api{/livreur} publics
+        au middleware ; AuthGuard HQ only ; \texttt{PUBLIC\_PREFIXES} mort dans
+        AuthGuard.
+  \item \textbf{Sessions enrichies coûteuses} --- parcours multi-appels Core
+        (N+1) pour branch/livreur session.
+  \item \textbf{Envelope hétérogène} --- SUCCESS vs JSON plat.
+  \item \textbf{Realtime dual} --- SSE Core vs WS legacy.
+  \item \textbf{README frontend partiellement obsolète} --- décrit \api{/} comme
+        dashboard (réel : landing ; dashboard = \api{/dashboard}).
+  \item \textbf{Messagerie immature}.
+  \item \textbf{Nomenclature DTO} encore « tnt-agency » alors que l'upstream
+        est Core.
+  \item \textbf{Docs ARCHITECTURE} encore centrées DB locale --- à réconcilier
+        avec BFF stateless.
+\end{enumerate}
+
+\section{Recommandations ingénierie (priorisées)}
+
+\begin{enumerate}
+  \item Geler un contrat OpenAPI « Agency BFF » unique (Next) + matrice de
+        parité Java ou plan de dépréciation daté.
+  \item Homogénéiser envelope + supprimer JSON plat session.
+  \item Étendre tests : auth MFA, onboarding approve, offline conflict.
+  \item Documenter et optimiser \texttt{auth/*/session} (cache court).
+  \item Mettre à jour README frontend (routes réelles).
+  \item Décider Trust : client lecture preuves ou purement Core opaque.
+\end{enumerate}
+
+\section{Observabilité minimale attendue}
+
+\begin{itemize}
+  \item Logs BFF : method, path normalisé, status Core, code erreur envelope
+        --- jamais password/api-key/JWT.
+  \item Corrélation : \texttt{tenantId}, \texttt{agencyId}, user sub si présent.
+  \item Smoke post-deploy : health JWKS + login + tracking public.
+\end{itemize}

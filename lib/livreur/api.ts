@@ -78,6 +78,13 @@ export async function livreurFetch<T>(path: string, options: RequestInit = {}): 
   } catch {
     throw new Error(formatUserError(null, 'Impossible de joindre le serveur. Vérifiez votre connexion.'));
   }
+  if (res.status === 401) {
+    clearLivreurSession();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/livreur/login';
+    }
+    throw new Error('Votre session a expiré. Veuillez vous reconnecter.');
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(formatUserError(
@@ -112,6 +119,12 @@ export async function livreurUpload(
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      clearLivreurSession();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/livreur/login';
+      }
+    }
     const body = await res.json().catch(() => ({}));
     throw new Error(formatUserError(
       { status: res.status, message: (body as { message?: string })?.message ?? '' },

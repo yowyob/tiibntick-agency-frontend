@@ -13,7 +13,7 @@ export const staffService = {
   async registerStaffMember(agencyId: string, data: {
     fullName: string;
     phone: string;
-    email?: string;
+    email: string;
     role: StaffRole;
     branchId?: string;
   }): Promise<StaffMember> {
@@ -45,7 +45,7 @@ export const staffService = {
   },
 
   async registerDeliverer(agencyId: string, data: {
-    fullName: string; phone: string; email?: string;
+    fullName: string; phone: string; email: string;
     delivererType: string; branchId?: string;
     actorId?: string;
   }): Promise<Deliverer> {
@@ -53,7 +53,7 @@ export const staffService = {
       ...(data.actorId ? { actorId: data.actorId } : {}),
       fullName: data.fullName,
       phone: data.phone,
-      ...(data.email ? { email: data.email } : {}),
+      email: data.email,
     });
     const deliverer = mapDeliverer(dto);
     if (data.branchId) {

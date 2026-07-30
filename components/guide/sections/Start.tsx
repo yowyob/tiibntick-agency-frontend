@@ -14,7 +14,7 @@ export function Demarrer() {
         libellés de boutons et de champs sont ceux de l’app.
       </P>
       <P>
-        Public : dirigeant d’agence, responsable d’antenne, dispatcher, comptable,
+          Public : dirigeant d’agence, responsable d’antenne, gérant de hub, dispatcher, comptable,
         livreur, et client qui suit un colis.
       </P>
 
@@ -22,6 +22,7 @@ export function Demarrer() {
       <Ul>
         <li><strong>Agence (HQ)</strong> — menu de gauche après connexion : dashboard, missions, flotte, hubs, personnel, facturation, paramètres.</li>
         <li><strong>Antenne</strong> — portail séparé (sidebar propre) : briefing, dispatch local, Mode Rush, GPS, hubs de la zone.</li>
+        <li><strong>Gérant de hub</strong> — portail <Path>/hub</Path> : stock, file de validation dépôt/retrait, QR dépôt &amp; retrait.</li>
         <li><strong>Livreur</strong> — app mobile web (barre du bas) : Accueil, Missions, Carte, Gains, Profil.</li>
         <li><strong>Client</strong> — pages publiques Suivi et dépôt, sans compte staff.</li>
       </Ul>
@@ -61,8 +62,8 @@ export function Portails() {
       <H2 id="landing">Depuis la page d’accueil</H2>
       <Path>
         Ouvrez le site public TiiBnTick Agency (page d’accueil). En haut à droite :
-        menu <Btn>Connexion</Btn> (Agence / Antenne / Livreur). Dans la section
-        « portails », quatre cartes cliquables. En bas : lien{' '}
+        menu <Btn>Connexion</Btn> (Agence / Antenne / Hub relais / Livreur). Dans la section
+        « portails », cinq cartes cliquables. En bas : lien{' '}
         <Btn>Guide utilisateur</Btn>.
       </Path>
       <P>
@@ -110,8 +111,41 @@ export function Portails() {
       </P>
       <P>
         <strong>Ensuite :</strong> sidebar antenne + dashboard local. Détail des
-        écrans : <GLink to="vue-antenne">Espace Antenne</GLink>.
+        écrans : <GLink to="vue-antenne">Espace Antenne</GLink>. Sur Hubs Relais, vous
+        pouvez retrouver un colis par code de suivi et aider un client sans smartphone.
       </P>
+
+      <H2 id="hub">Portail hub relais</H2>
+      <P>
+        <Btn>Connexion</Btn> → <Btn>Hub relais</Btn>, ou carte « Je gère un hub relais ».
+        Compte rôle <strong>AGENCY_HUB_OPERATOR</strong> provisionné depuis HQ
+        (Configure hub → gérant).
+      </P>
+      <Steps
+        items={[
+          {
+            title: 'Se connecter',
+            body: (
+              <>
+                <Field>Adresse email</Field> + <Field>Mot de passe</Field> →{' '}
+                <Btn>Se connecter</Btn>. Le BFF résout votre hub via{' '}
+                <Path>/auth/hub/session</Path>.
+              </>
+            ),
+          },
+          {
+            title: 'Après connexion',
+            body: (
+              <>
+                Dashboard hub, <Btn>Demandes</Btn> (file dépôt/retrait, poll auto),{' '}
+                <Btn>Stock</Btn>, <Btn>QR</Btn> dépôt &amp; retrait. Le livreur scanne
+                le QR → vous validez. Client sans smartphone : antenne ou déclaration
+                « Client a récupéré » + lien de confirmation.
+              </>
+            ),
+          },
+        ]}
+      />
 
       <H2 id="livreur">Portail livreur</H2>
       <P>
@@ -132,7 +166,7 @@ export function Portails() {
 
       <H2 id="inscription">Créer une agence (pas à pas)</H2>
       <Path>
-        Landing → <Btn>Créer mon agence</Btn> (section Démarrer) ou lien footer.
+        Landing → <Btn>Créer Mon entreprise</Btn> (section Démarrer) ou lien footer.
       </Path>
       <P>
         <strong>Ce que vous voyez :</strong> un formulaire multi-étapes avec{' '}
@@ -273,9 +307,10 @@ export function WorkflowComplet() {
           statut Livré.
         </li>
         <li>
-          <strong>Relais :</strong> <Btn>Dépôt au hub relais</Btn> → choisir hub →
-          code / <Btn>Scanner QR</Btn> → <Btn>Confirmer dépôt</Btn>. Plus tard, retrait
-          au hub ou détail mission <Btn>Enregistrer le retrait</Btn>.
+          <strong>Relais :</strong> le livreur scanne le <Btn>QR Dépôt</Btn> du hub
+          (portail gérant <Path>/hub</Path>) → demande en file → le gérant valide.
+          Retrait : <Btn>QR Retrait</Btn> ou déclaration hub + confirmation client.
+          Sans smartphone : passer par le responsable d&apos;antenne.
         </li>
         <li>
           Problème terrain : <Btn>Signaler un problème</Btn> → motif → toast « Problème

@@ -43,6 +43,12 @@ export const searchService = {
     const result = await apiClient.get<SearchResults>(
       `/agencies/${agencyId}/search?${params.toString()}`,
     );
-    return result ?? { hits: [], total: 0 };
+    if (!result) {
+      throw new Error('Le service de recherche n\'a renvoyé aucun résultat.');
+    }
+    return {
+      hits: Array.isArray(result.hits) ? result.hits : [],
+      total: typeof result.total === 'number' ? result.total : 0,
+    };
   },
 };

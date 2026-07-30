@@ -16,7 +16,7 @@ export type PackageStatus = 'REGISTERED' | 'PICKED_UP' | 'IN_TRANSIT' | 'AT_HUB'
 export type PolicyStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
 export type AssociationStatus = 'PENDING' | 'ACTIVE' | 'PAUSED' | 'TERMINATED'
 export type CommissionStatus = 'CALCULATED' | 'VALIDATED' | 'PAID' | 'DISPUTED'
-export type StaffRole = 'AGENCY_MANAGER' | 'BRANCH_MANAGER' | 'OPERATIONS_MANAGER' | 'ACCOUNTANT' | 'DISPATCHER'
+export type StaffRole = 'AGENCY_MANAGER' | 'BRANCH_MANAGER' | 'OPERATIONS_MANAGER' | 'ACCOUNTANT' | 'DISPATCHER' | 'HUB_OPERATOR'
 export type StaffStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
 
 export interface Agency {
@@ -79,6 +79,9 @@ export interface Deliverer {
   vehiclePlate?: string
   joinedAt: string
   photoUrl?: string
+  lastLatitude?: number
+  lastLongitude?: number
+  lastLocationAt?: string
 }
 
 export interface Contract {
@@ -160,6 +163,9 @@ export interface Hub {
   status: HubStatus
   managerName?: string
   managerPhone?: string
+  operatorName?: string
+  operatorEmail?: string
+  operatorUserId?: string
   openingHours: string
   photoUrl?: string
 }

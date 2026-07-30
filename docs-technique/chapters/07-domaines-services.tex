@@ -1,0 +1,73 @@
+\chapter{Domaines métier et services client}
+
+\section{Cartographie \pathref{lib/services/}}
+
+\begin{longtable}{@{}p{0.34\textwidth}p{0.58\textwidth}@{}}
+\toprule
+\textbf{Service} & \textbf{Responsabilité} \\
+\midrule
+\endhead
+\pathref{authService.ts} & Session HQ/admin, persist localStorage \\
+\pathref{yowauthService.ts} / couche auth & login/signup/MFA vers BFF \\
+\pathref{registerService.ts} & Candidature onboarding \\
+\pathref{onboardingAdminService.ts} & Approve/reject admin \\
+\pathref{agencyService.ts} & Profil / settings agence \\
+\pathref{branchService.ts} & Antennes HQ \\
+\pathref{staffService.ts} & Managers, livreurs, contrats, freelancers \\
+\pathref{fleetService.ts} / \pathref{fleetManService.ts} & Véhicules + pont FleetMan \\
+\pathref{missionService.ts} & Missions HQ \\
+\pathref{hubService.ts} & Hubs + colis \\
+\pathref{billingService.ts} & Policies, invoices, estimate \\
+\pathref{agencyOperationsService.ts} & Agrégats ops HQ \\
+\pathref{analyticsService.ts} & KPI / reports \\
+\pathref{notificationService.ts} & Inbox notifications \\
+\pathref{searchService.ts} & Recherche (proxy Search) \\
+\pathref{intakeService.ts} & Intake / walk-in / approve \\
+\pathref{trackingService.ts} & Suivi public \\
+\pathref{complianceService.ts} & Litiges / claims \\
+\pathref{mediaService.ts} & Upload media / KYC \\
+\pathref{adminService.ts} & Admin agences \\
+\pathref{yowyobIntegrationService.ts} & Launch SSO apps \\
+\pathref{branchAuthService.ts} + portal/ops & Portail antenne \\
+\pathref{livreurAuthService.ts} + mission/hub/location/media/commission & Portail livreur \\
+\bottomrule
+\end{longtable}
+
+\section{Couche API client}
+
+\begin{itemize}
+  \item \pathref{lib/api/client.ts} --- fetch same-origin, gestion envelope/HTTP
+  \item \pathref{lib/api/envelope.ts} --- unwrap
+  \item \pathref{lib/api/mappers.ts} + \pathref{dto.ts} --- DTO$\rightarrow$modèle UI
+  \item \pathref{lib/errors.ts} + toast --- UX erreur non technique
+\end{itemize}
+
+\noteeng{\pathref{dto.ts} porte encore le commentaire « réponses brutes du
+backend tnt-agency » --- nomenclature héritée alors que l'upstream runtime est
+Core agency-registry.}
+
+\section{Patterns UI métier}
+
+\begin{description}[style=nextline]
+  \item[Drawers]
+    \pathref{components/forms/Drawer.tsx} + *DetailDrawer (mission, contrat,
+    commission, freelancer, invoice, branch\ldots).
+  \item[Forms]
+    Create*Form sous \pathref{components/forms/} (RHF+Zod).
+  \item[Action queues]
+    \pathref{lib/agency/actionQueue.ts}, \pathref{lib/branch/actionQueue.ts}
+    pour files d'actions ops.
+  \item[Hooks data]
+    \texttt{useAgencyOperationalData}, \texttt{useBranchOperationalData},
+    positions GPS live.
+  \item[Toast]
+    \pathref{contexts/ToastContext.tsx} (4s auto-dismiss).
+\end{description}
+
+\section{Surfaces encore immatures (constat code)}
+
+\begin{itemize}
+  \item Messagerie : pages présentes + indicateurs « coming soon » /
+        \cls{ComingSoonBadge}.
+  \item Trust : URL configurée, pas de SDK client dédié.
+\end{itemize}

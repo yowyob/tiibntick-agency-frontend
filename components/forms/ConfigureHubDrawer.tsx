@@ -8,6 +8,7 @@ import { hubService } from '@/lib/services/hubService'
 import HubReportPanel from '@/components/hubs/HubReportPanel'
 import { useToast } from '@/contexts/ToastContext'
 import { toastErrorMessage } from '@/lib/toastError'
+import { getAgencyId } from '@/lib/session'
 import type { Hub, HubStatus } from '@/lib/types'
 
 const cls = {
@@ -31,6 +32,10 @@ export default function ConfigureHubDrawer({ hub, open, onClose, onSuccess }: Pr
   const [openingHours, setOpeningHours] = useState('')
   const [branchId, setBranchId] = useState('')
   const [status, setStatus] = useState<HubStatus>('OPEN')
+  const [opName, setOpName] = useState('')
+  const [opPhone, setOpPhone] = useState('')
+  const [opEmail, setOpEmail] = useState('')
+  const [opBusy, setOpBusy] = useState(false)
   const [occupancy, setOccupancy] = useState<{
     current: number;
     capacity: number;
@@ -60,6 +65,31 @@ export default function ConfigureHubDrawer({ hub, open, onClose, onSuccess }: Pr
   }, [hub, open])
 
   if (!hub) return null
+
+  const provisionOperator = async () => {
+    if (!opName.trim() || !opPhone.trim() || !opEmail.trim()) {
+      toastError('Nom, téléphone et email du gérant sont requis.')
+      return
+    }
+    setOpBusy(true)
+    try {
+      await hubService.provisionOperator(getAgencyId(), hub.id, {
+        fullName: opName.trim(),
+        phone: opPhone.trim(),
+        email: opEmail.trim(),
+        branchId: branchId || undefined,
+      })
+      toastSuccess('Gérant créé — identifiants envoyés par email.')
+      setOpName('')
+      setOpPhone('')
+      setOpEmail('')
+      onSuccess?.()
+    } catch (err) {
+      toastError(toastErrorMessage(err, 'Impossible de créer le gérant.'))
+    } finally {
+      setOpBusy(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -158,6 +188,27 @@ export default function ConfigureHubDrawer({ hub, open, onClose, onSuccess }: Pr
               <option value="OPEN">Ouvert</option>
               <option value="TEMPORARILY_CLOSED">Fermé temporairement</option>
             </select>
+          </div>
+
+          <div className="pt-4 border-t border-gray-100 space-y-3">
+            <p className="text-sm font-semibold text-gray-800">Gérant de hub</p>
+            <p className="text-xs text-gray-500">
+              Crée un compte AGENCY_HUB_OPERATOR, envoie les identifiants par email et rattache au hub.
+            </p>
+            <input placeholder="Nom complet" value={opName} onChange={e => setOpName(e.target.value)} className={cls.input} />
+            <div className="grid grid-cols-2 gap-3">
+              <input placeholder="Téléphone" value={opPhone} onChange={e => setOpPhone(e.target.value)} className={cls.input} />
+              <input placeholder="Email" type="email" value={opEmail} onChange={e => setOpEmail(e.target.value)} className={cls.input} />
+            </div>
+            <button
+              type="button"
+              disabled={opBusy}
+              onClick={() => void provisionOperator()}
+              className="w-full h-10 border border-slate-300 text-slate-800 text-sm font-medium rounded-lg hover:bg-slate-50 disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {opBusy ? <Loader2 size={14} className="animate-spin" /> : null}
+              Créer le gérant + envoyer le mail
+            </button>
           </div>
 
           <button

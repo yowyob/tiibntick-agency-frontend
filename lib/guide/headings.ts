@@ -12,6 +12,7 @@ export const DETAILED_HEADINGS: Record<string, GuideHeading[]> = {
     { id: 'landing', title: 'Depuis la page d’accueil' },
     { id: 'agence', title: 'Portail agence' },
     { id: 'antenne', title: 'Portail antenne' },
+    { id: 'hub', title: 'Portail hub relais' },
     { id: 'livreur', title: 'Portail livreur' },
     { id: 'suivi', title: 'Suivi public' },
     { id: 'inscription', title: 'Créer une agence (pas à pas)' },

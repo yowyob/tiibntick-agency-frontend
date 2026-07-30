@@ -1,0 +1,72 @@
+\chapter{Objet, audience et conventions}
+
+\section{Objet}
+
+Documenter \textbf{ce qui est réellement implémenté} dans TiiBnTick Agency :
+\begin{itemize}
+  \item le frontend Next.js multi-portails ;
+  \item le BFF embarqué \api{/api/agency/*} (chemin d'exécution principal) ;
+  \item le BFF Java \pathref{backend/tnt-agency} (conservé en rollback) ;
+  \item les contrats avec Core (agency-registry, auth, SSO, sync) et les satellites.
+\end{itemize}
+
+\section{Hors périmètre}
+
+\begin{itemize}
+  \item Guide utilisateur produit (\api{/guide} --- 17 sections, demos interactives).
+  \item Spécification interne de Kernel ou de chaque module Core L0--L5.
+  \item Landing écosystème \pathref{landing/} (hub multi-produits) --- mentionnée
+        uniquement comme adjacent.
+\end{itemize}
+
+\section{Conventions de lecture}
+
+\begin{description}[style=nextline]
+  \item[Runtime actuel]
+    Navigateur $\rightarrow$ Next BFF $\rightarrow$ Core. Affirmé dans
+    \pathref{frontend/README.md}.
+  \item[Rollback]
+    BFF Java \texttt{tnt-agency} (:8081, base-path \api{/agency}). Même contrat
+    conceptuel (agency-registry), déploiement distinct.
+  \item[Écart documentaire]
+    \pathref{ARCHITECTURE\_CORE\_KERNEL\_AGENCY.md} décrit encore une Agency avec
+    DB locale et KernelBridge --- modèle historique. Le BFF Java actuel est
+    \textbf{stateless} (R2DBC/Liquibase désactivés, \pathref{INTEGRATIONS.md}).
+    Ce document priorise le \textbf{code runtime}.
+\end{description}
+
+\section{Glossaire opérationnel}
+
+\begin{longtable}{@{}p{0.28\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{Terme} & \textbf{Définition dans Agency} \\
+\midrule
+\endhead
+Tenant & UUID plateforme Kernel/Core. Côté public :
+  \envvar{NEXT\_PUBLIC\_TENANT\_ID}. Distinct de \texttt{agencyId}. \\
+AgencyId & Identifiant d'une agence dans agency-registry. Provenance : QR, query
+  string, session staff, réponse tracking. \\
+Antenne / Branch & Site opérationnel rattaché à une agence. Portail
+  \api{/branch/*}. \\
+Hub relais & Point de dépôt/retrait. Occupancy + colis. \\
+Mission & Unité de livraison. Statuts :
+  \texttt{DRAFT|PENDING|ASSIGNED|IN\_TRANSIT|AT\_HUB|DELIVERED|FAILED|CANCELLED}
+  (\pathref{lib/types.ts}). \\
+Intake & Demande d'expédition / dépôt (QR public ou walk-in HQ). \\
+POD & Proof of Delivery (photo, signature, OTP). \\
+Platform Client & Couple \texttt{X-Client-Id}/\texttt{X-Api-Key} enregistré sur
+  Core pour Agency. \\
+Shared session & Cookie \texttt{tnt-shared-session} pour handoff SSO Yowyob. \\
+\bottomrule
+\end{longtable}
+
+\section{Sources primaires (code)}
+
+\begin{itemize}
+  \item \pathref{frontend/package.json}, \pathref{middleware.ts},
+        \pathref{lib/server/agency-bff.ts}, \pathref{lib/server/verify-auth.ts}
+  \item \pathref{frontend/.env.example}, \pathref{lib/config.ts}, \pathref{lib/seo.ts}
+  \item \pathref{backend/docs/AUTH\_BFF.md}, \pathref{ONBOARDING\_KERNEL\_FLOW.md},
+        \pathref{ADR\_CORE\_FIRST\_MIGRATION.md}, \pathref{CORE\_CONSUMER\_CONTRACT.md}
+  \item \pathref{backend/tnt-agency/INTEGRATIONS.md}
+\end{itemize}

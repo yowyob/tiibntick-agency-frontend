@@ -1,0 +1,139 @@
+% =============================================================================
+% Documentation technique — TiiBnTick Agency
+% Version 2.0 — Analyse basée sur le code (frontend + BFF + docs backend)
+% Compilation : pdflatex main.tex (×2)  |  latexmk -pdf main.tex
+% =============================================================================
+\documentclass[11pt,a4paper,openany]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{needspace}
+
+\geometry{margin=2.2cm, top=2.5cm, bottom=2.6cm}
+
+\definecolor{brandorange}{HTML}{EA580C}
+\definecolor{codebg}{HTML}{F5F5F4}
+\definecolor{codeframe}{HTML}{D6D3D1}
+\definecolor{ink}{HTML}{1C1917}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=brandorange,
+  urlcolor=brandorange,
+  citecolor=brandorange,
+  pdftitle={TiiBnTick Agency — Documentation technique v2},
+  pdfauthor={Équipe ingénierie TiiBnTick}
+}
+
+\lstset{
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  columns=fullflexible,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+  aboveskip=0.8em,
+  belowskip=0.8em
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily TiiBnTick Agency --- Doc.\ technique v2.0}
+\fancyhead[R]{\small\thepage}
+\fancyfoot[C]{\footnotesize\sffamily Usage interne --- ne pas diffuser hors équipe}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{brandorange}}
+  {\chaptertitlename\ \thechapter}{14pt}{\Huge}
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{ink}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\newcommand{\pathref}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\api}[1]{\texttt{#1}}
+\newcommand{\envvar}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\cls}[1]{\texttt{#1}}
+\newcommand{\noteeng}[1]{\paragraph{Note d'ingénierie.} #1}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1.8cm}
+  {\sffamily\Large TiiBnTick}\\[0.35cm]
+  {\sffamily\huge\bfseries Documentation technique}\\[0.35cm]
+  {\sffamily\LARGE Agency --- Frontend, BFF \& intégrations}\\[1.2cm]
+  \rule{\textwidth}{1.5pt}\\[0.5cm]
+  {\large Analyse d'architecture et de conception à partir du code source}\\[0.25cm]
+  {\large Plateforme de gestion d'agences de livraison}\\[0.5cm]
+  \rule{\textwidth}{1.5pt}\\[1.4cm]
+  \begin{tabular}{@{}rl@{}}
+    \textbf{Version document} & 2.0 \\
+    \textbf{Date} & \today \\
+    \textbf{Périmètre code} & \pathref{frontend/} (runtime) + \pathref{backend/tnt-agency/} (rollback) \\
+    \textbf{Upstream} & TiiBnTick Core (agency-registry) / Kernel (IAM via Core) \\
+    \textbf{Audience} & Ingénieurs, architectes, DevOps, reviewers techniques \\
+    \textbf{Statut} & Vivant --- à mettre à jour à chaque changement de contrat BFF \\
+  \end{tabular}
+  \vfill
+  \begin{minipage}{0.92\textwidth}
+    \small
+    Ce document n'est \textbf{pas} un guide utilisateur (celui-ci est servi dans
+    l'application sous \api{/guide}). Il décrit la stack, les frontières de
+    responsabilité, les processus bout-en-bout, les contrats HTTP, les
+    mécanismes d'auth, le mode offline livreur, et les dettes techniques
+    constatées dans le dépôt.
+  \end{minipage}
+\end{titlepage}
+
+\clearpage
+\chapter*{Journal des versions}
+\begin{tabular}{@{}llp{0.55\textwidth}@{}}
+\toprule
+\textbf{Ver.} & \textbf{Date} & \textbf{Contenu} \\
+\midrule
+1.0 & 2026-07-29 & Esquisse surfacique (rejetée --- trop générique) \\
+2.0 & \today & Réécriture ingénierie : stack exacte, BFF, process, dettes \\
+\bottomrule
+\end{tabular}
+
+\tableofcontents
+\clearpage
+
+\input{chapters/01-introduction}
+\input{chapters/02-stack}
+\input{chapters/03-architecture}
+\input{chapters/04-bff}
+\input{chapters/05-portails-auth}
+\input{chapters/06-processus}
+\input{chapters/07-domaines-services}
+\input{chapters/08-integrations}
+\input{chapters/09-realtime-offline}
+\input{chapters/10-deploiement}
+\input{chapters/11-securite-dette}
+\input{chapters/12-annexes}
+
+\end{document}

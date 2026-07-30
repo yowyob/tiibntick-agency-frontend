@@ -39,6 +39,29 @@ export const WHATSAPP_BASE_URL =
 export const AGENCY_FRONTEND_URL =
   process.env.NEXT_PUBLIC_AGENCY_FRONTEND_URL ?? 'http://localhost:3001';
 
+/** Landing globale TiiBnTick (légal, réseaux sociaux). */
+export const TIIBNTICK_SITE_URL = (
+  process.env.NEXT_PUBLIC_TIIBNTICK_SITE_URL ?? 'https://tiibntick.yowyob.com'
+).replace(/\/$/, '');
+
+function envOr(key: string, fallback: string): string {
+  const value = process.env[key]?.trim();
+  return value && value.length > 0 ? value : fallback;
+}
+
+/** Liens légaux & sociaux — pointent vers le site global en ligne. */
+export const GLOBAL_LINKS = {
+  terms: envOr('NEXT_PUBLIC_TERMS_URL', `${TIIBNTICK_SITE_URL}/fr/cgu`),
+  privacy: envOr('NEXT_PUBLIC_PRIVACY_URL', `${TIIBNTICK_SITE_URL}/fr/confidentialite`),
+  cookies: envOr('NEXT_PUBLIC_COOKIES_URL', `${TIIBNTICK_SITE_URL}/fr/cookies`),
+  social: {
+    facebook: envOr('NEXT_PUBLIC_FACEBOOK_URL', 'https://facebook.com/tiibntick'),
+    twitter: envOr('NEXT_PUBLIC_TWITTER_URL', 'https://twitter.com/tiibntick'),
+    linkedin: envOr('NEXT_PUBLIC_LINKEDIN_URL', 'https://linkedin.com/company/tiibntick'),
+    instagram: envOr('NEXT_PUBLIC_INSTAGRAM_URL', 'https://instagram.com/tiibntick'),
+  },
+} as const;
+
 /**
  * Tenant public — portail client anonyme (suivi / dépôt).
  * L’agencyId n’est plus en env : il vient du QR / URL / session / réponse suivi.

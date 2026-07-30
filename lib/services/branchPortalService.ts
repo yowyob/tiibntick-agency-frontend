@@ -95,6 +95,25 @@ export async function branchFetch<T>(path: string, options: RequestInit = {}): P
   } catch {
     throw new Error(formatUserError(null, 'Impossible de joindre le serveur.'));
   }
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      ;[
+        'tnt-branch-session-active',
+        'tnt-branch-token',
+        'tnt-branch-tenant-id',
+        'tnt-branch-agency-id',
+        'tnt-branch-id',
+        'tnt-branch-manager-id',
+        'tnt-branch-manager-name',
+        'tnt-branch-name',
+        'tnt-branch-email',
+        'tnt-branch-user-id',
+        'tnt-branch-user-role',
+      ].forEach(k => localStorage.removeItem(k))
+      window.location.href = '/branch/login'
+    }
+    throw new Error('Votre session a expiré. Veuillez vous reconnecter.');
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(formatUserError(

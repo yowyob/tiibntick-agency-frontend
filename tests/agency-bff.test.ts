@@ -5,6 +5,7 @@ import {
   isPublicRequest,
   normalizeBffPath,
   resolveAgencySyncCorePath,
+  rewriteAgencyRegistryPath,
 } from '@/lib/server/agency-bff'
 
 describe('Agency BFF path validation', () => {
@@ -31,12 +32,37 @@ describe('Agency BFF public surface', () => {
     expect(isPublicRequest('GET', 'tracking/TNT-123')).toBe(true)
     expect(isPublicRequest('GET', 'tracking/TNT-123/stream')).toBe(true)
     expect(isPublicRequest('POST', 'intake-requests')).toBe(true)
+    expect(isPublicRequest('POST', 'hub-handoffs/abc/confirm-client')).toBe(true)
+    expect(isPublicRequest('GET', 'agencies/a/relay-hubs')).toBe(true)
 
     expect(isPublicRequest('GET', 'agencies')).toBe(false)
     expect(isPublicRequest('PATCH', 'agencies/a/settings')).toBe(false)
     expect(isPublicRequest('GET', 'admin/agencies')).toBe(false)
     expect(isPublicRequest('GET', 'sync/pull')).toBe(false)
     expect(isPublicRequest('POST', 'sync/push')).toBe(false)
+    expect(isPublicRequest('POST', 'hub-handoffs/abc/approve')).toBe(false)
+  })
+})
+
+describe('Agency registry path rewrites', () => {
+  it('maps Java-shaped hub parcel paths onto Core', () => {
+    expect(rewriteAgencyRegistryPath('POST', 'hubs/expired')).toBe('hubs/expired/process')
+    expect(rewriteAgencyRegistryPath('POST', 'hubs/h1/parcels')).toBe('hubs/h1/parcels/deposit')
+    expect(rewriteAgencyRegistryPath('GET', 'hubs/h1/parcels')).toBe('hubs/h1/parcels')
+  })
+})
+
+describe('Agency BFF public claims', () => {
+  it('keeps client claims on the public surface', () => {
+    expect(isPublicRequest('POST', 'agencies/agency-1/claims')).toBe(true)
+  })
+
+  it('keeps public drop-off on the public surface', () => {
+    expect(isPublicRequest('POST', 'agencies/agency-1/drop-off')).toBe(true)
+  })
+
+  it('keeps notification stream authenticated', () => {
+    expect(isPublicRequest('GET', 'agencies/agency-1/notifications/stream')).toBe(false)
   })
 })
 

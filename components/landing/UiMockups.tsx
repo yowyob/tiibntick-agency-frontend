@@ -4,10 +4,10 @@ import Image from 'next/image'
 import { useTheme } from '@/contexts/ThemeContext'
 import { FramedMedia } from './MediaFrame'
 
-type CaptureKind = 'dashboard' | 'branch' | 'driver' | 'track'
+type CaptureKind = 'dashboard' | 'branch' | 'hub' | 'driver' | 'track'
 
 const CAPTURES: Record<
-  CaptureKind,
+  Exclude<CaptureKind, 'hub'>,
   { light: string; dark?: string; alt: string; phone?: boolean; motif: number }
 > = {
   dashboard: {
@@ -36,6 +36,57 @@ const CAPTURES: Record<
   },
 }
 
+/** Mock CSS du portail gérant hub (pas de capture PNG dédiée). */
+export function HubPortalMock({ className = '' }: { className?: string }) {
+  return (
+    <FramedMedia tone="light" variant={2} className={`w-full max-w-md ${className}`}>
+      <div className="bg-[#F7F6F4] p-4 sm:p-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-600">
+              Espace hub
+            </p>
+            <p className="font-display text-base font-semibold text-slate-900">Hub Akwa Relais</p>
+          </div>
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+            Ouvert
+          </span>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {[
+            { label: 'En stock', value: '12' },
+            { label: 'À valider', value: '3' },
+            { label: 'Occupation', value: '64%' },
+          ].map(kpi => (
+            <div key={kpi.label} className="rounded-xl bg-white px-2.5 py-3 text-center shadow-sm">
+              <p className="font-display text-lg font-semibold text-slate-900">{kpi.value}</p>
+              <p className="text-[10px] text-slate-500">{kpi.label}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 space-y-2">
+          <div className="rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2.5">
+            <p className="text-xs font-semibold text-slate-900">Dépôt · TNT-4821</p>
+            <p className="text-[10px] text-slate-500">Livreur Jean — en attente</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+            <p className="text-xs font-semibold text-slate-900">Retrait · TNT-3904</p>
+            <p className="text-[10px] text-slate-500">Confirmation client requise</p>
+          </div>
+        </div>
+        <div className="mt-3 flex gap-2">
+          <span className="flex-1 rounded-lg bg-slate-900 py-2 text-center text-[11px] font-semibold text-white">
+            QR Dépôt
+          </span>
+          <span className="flex-1 rounded-lg bg-orange-500 py-2 text-center text-[11px] font-semibold text-white">
+            QR Retrait
+          </span>
+        </div>
+      </div>
+    </FramedMedia>
+  )
+}
+
 export function CaptureFrame({
   kind,
   className = '',
@@ -44,6 +95,9 @@ export function CaptureFrame({
   className?: string
 }) {
   const { theme } = useTheme()
+  if (kind === 'hub') {
+    return <HubPortalMock className={className} />
+  }
   const cfg = CAPTURES[kind]
   const src = theme === 'dark' && cfg.dark ? cfg.dark : cfg.light
 

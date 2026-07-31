@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { authService } from '@/lib/services/authService'
 
-const PUBLIC_PREFIXES = ['/login', '/register', '/track', '/livreur', '/branch']
+const PUBLIC_PREFIXES = ['/login', '/register', '/track', '/livreur', '/branch', '/hub']
 const PENDING_ALLOWED = ['/pending', '/admin']
 
 /** Garde client-side — session + statut agence (compte limité si non ACTIVE). */
@@ -13,6 +13,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
+    if (PUBLIC_PREFIXES.some(p => pathname === p || pathname.startsWith(`${p}/`))) {
+      return
+    }
+
     if (!authService.isAuthenticated()) {
       const loginPath = pathname.startsWith('/admin') ? '/admin/login' : '/login'
       router.replace(`${loginPath}?from=${encodeURIComponent(pathname)}`)

@@ -103,17 +103,17 @@ export default function HubDemandesPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-6 max-w-4xl">
+      <div className="flex items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Demandes</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Demandes</h1>
           <p className="text-sm text-gray-500 mt-1">Dépôts / retraits à valider, ou confirmation client.</p>
         </div>
         <button
           type="button"
           onClick={() => void claimClient()}
           disabled={busyId === 'claim'}
-          className="px-3 py-2 text-sm bg-slate-800 text-white rounded-lg hover:bg-slate-900 disabled:opacity-60"
+          className="px-3 py-2 text-sm font-semibold bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:bg-orange-300 shrink-0"
         >
           Client a récupéré…
         </button>

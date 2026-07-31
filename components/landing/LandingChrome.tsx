@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Facebook, Instagram, Linkedin, Moon, Sun, Twitter } from 'lucide-react'
+import { ChevronDown, Facebook, Instagram, Linkedin, Menu, Moon, Sun, Twitter, X } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { GLOBAL_LINKS } from '@/lib/config'
 import { CREATE_ENTERPRISE_CTA } from './landingCopy'
@@ -12,10 +12,13 @@ type LandingChromeProps = {
   active?: 'home' | 'pricing' | 'guide'
 }
 
+type NavItem = { href: string; label: string; hash?: boolean }
+
 export default function LandingChrome({ children, active }: LandingChromeProps) {
   const { theme, toggleTheme } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [connOpen, setConnOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -31,6 +34,20 @@ export default function LandingChrome({ children, active }: LandingChromeProps) 
     return () => window.removeEventListener('click', close)
   }, [connOpen])
 
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [mobileOpen])
+
   const navCls = (isActive: boolean) =>
     `text-sm font-medium transition-colors ${
       isActive
@@ -38,64 +55,73 @@ export default function LandingChrome({ children, active }: LandingChromeProps) 
         : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
     }`
 
+  const primaryNav: NavItem[] =
+    active === 'home'
+      ? [
+          { href: '#portails', label: 'Portails', hash: true },
+          { href: '#fonctionnalites', label: 'Fonctionnalités', hash: true },
+          { href: '/tarifs', label: 'Tarifs' },
+          { href: '/guide', label: 'Guide' },
+          { href: '#demarrer', label: 'Démarrer', hash: true },
+        ]
+      : [
+          { href: '/#portails', label: 'Portails' },
+          { href: '/#fonctionnalites', label: 'Fonctionnalités' },
+          { href: '/tarifs', label: 'Tarifs' },
+          { href: '/guide', label: 'Guide' },
+          { href: '/#demarrer', label: 'Démarrer' },
+        ]
+
+  const loginLinks = [
+    { href: '/login', label: 'Agence' },
+    { href: '/branch/login', label: 'Antenne' },
+    { href: '/hub/login', label: 'Hub relais' },
+    { href: '/livreur/login', label: 'Livreur' },
+  ]
+
+  const closeMobile = () => setMobileOpen(false)
+
+  const headerSolid =
+    scrolled || mobileOpen
+      ? 'border-b border-slate-200/80 bg-[#F7F6F4]/95 backdrop-blur-md dark:border-slate-800 dark:bg-[#0B1220]/95'
+      : 'bg-transparent'
+
   return (
     <div className="landing-root font-landing text-slate-900 antialiased dark:text-slate-100">
-      <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? 'border-b border-slate-200/80 bg-[#F7F6F4]/90 backdrop-blur-md dark:border-slate-800 dark:bg-[#0B1220]/90'
-            : 'bg-transparent'
-        }`}
-      >
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-[11px] font-bold text-white">
+      <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${headerSolid}`}>
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-8">
+          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5" onClick={closeMobile}>
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-500 text-[11px] font-bold text-white">
               TA
             </span>
-            <span className="font-display text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
+            <span className="font-display truncate text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
               TiiBnTick{' '}
-              <span className="text-slate-500 dark:text-slate-400">Agency</span>
+              <span className="hidden text-slate-500 sm:inline dark:text-slate-400">Agency</span>
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-7 md:flex">
-            {active === 'home' ? (
-              <>
-                <a href="#portails" className={navCls(false)}>
-                  Portails
+          <nav className="hidden items-center gap-6 lg:flex xl:gap-7">
+            {primaryNav.map((item) =>
+              item.hash ? (
+                <a key={item.href} href={item.href} className={navCls(false)}>
+                  {item.label}
                 </a>
-                <a href="#fonctionnalites" className={navCls(false)}>
-                  Fonctionnalités
-                </a>
-              </>
-            ) : (
-              <>
-                <Link href="/#portails" className={navCls(false)}>
-                  Portails
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={navCls(
+                    (item.href === '/tarifs' && active === 'pricing') ||
+                      (item.href === '/guide' && active === 'guide'),
+                  )}
+                >
+                  {item.label}
                 </Link>
-                <Link href="/#fonctionnalites" className={navCls(false)}>
-                  Fonctionnalités
-                </Link>
-              </>
-            )}
-            <Link href="/tarifs" className={navCls(active === 'pricing')}>
-              Tarifs
-            </Link>
-            <Link href="/guide" className={navCls(active === 'guide')}>
-              Guide
-            </Link>
-            {active === 'home' ? (
-              <a href="#demarrer" className={navCls(false)}>
-                Démarrer
-              </a>
-            ) : (
-              <Link href="/#demarrer" className={navCls(false)}>
-                Démarrer
-              </Link>
+              ),
             )}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={toggleTheme}
@@ -105,23 +131,18 @@ export default function LandingChrome({ children, active }: LandingChromeProps) 
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <div className="relative hidden sm:block" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 onClick={() => setConnOpen((o) => !o)}
-                className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200/60 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200/60 dark:text-slate-200 dark:hover:bg-slate-800 sm:px-3"
               >
                 Connexion
                 <ChevronDown size={14} className={connOpen ? 'rotate-180' : ''} />
               </button>
               {connOpen && (
                 <div className="absolute right-0 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-                  {[
-                    { href: '/login', label: 'Agence' },
-                    { href: '/branch/login', label: 'Antenne' },
-                    { href: '/hub/login', label: 'Hub relais' },
-                    { href: '/livreur/login', label: 'Livreur' },
-                  ].map((item) => (
+                  {loginLinks.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
@@ -137,12 +158,87 @@ export default function LandingChrome({ children, active }: LandingChromeProps) 
 
             <Link
               href="/register"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+              className="hidden items-center gap-1.5 rounded-lg bg-orange-500 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600 md:inline-flex"
             >
               {CREATE_ENTERPRISE_CTA}
             </Link>
+
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-lg p-2 text-slate-700 transition-colors hover:bg-slate-200/60 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
+              aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={mobileOpen}
+              onClick={() => {
+                setConnOpen(false)
+                setMobileOpen((o) => !o)
+              }}
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile / tablet panel */}
+        {mobileOpen && (
+          <div className="border-t border-slate-200/80 bg-[#F7F6F4] dark:border-slate-800 dark:bg-[#0B1220] lg:hidden">
+            <div className="mx-auto max-h-[calc(100dvh-4rem)] max-w-6xl overflow-y-auto px-4 py-4 sm:px-8">
+              <nav className="flex flex-col gap-1">
+                {primaryNav.map((item) =>
+                  item.hash ? (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMobile}
+                      className="rounded-xl px-3 py-3 text-base font-medium text-slate-800 hover:bg-slate-200/50 dark:text-slate-100 dark:hover:bg-slate-800"
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMobile}
+                      className={`rounded-xl px-3 py-3 text-base font-medium hover:bg-slate-200/50 dark:hover:bg-slate-800 ${
+                        (item.href === '/tarifs' && active === 'pricing') ||
+                        (item.href === '/guide' && active === 'guide')
+                          ? 'text-orange-600 dark:text-orange-400'
+                          : 'text-slate-800 dark:text-slate-100'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  ),
+                )}
+              </nav>
+
+              <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
+                <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Connexion
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {loginLinks.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeMobile}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center text-sm font-medium text-slate-700 hover:border-orange-300 hover:text-orange-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-orange-500/40"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <Link
+                href="/register"
+                onClick={closeMobile}
+                className="mt-4 flex w-full items-center justify-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white hover:bg-orange-600"
+              >
+                {CREATE_ENTERPRISE_CTA}
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {children}
